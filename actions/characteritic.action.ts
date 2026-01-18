@@ -57,7 +57,7 @@ export const createCharacteristicAction = actionClient
     .schema(createCharacteristicSchema)
     .action(async ({ parsedInput }) => {
         try {
-            const session = await checkAuth({ requiredPermission: "charac_create" })
+            const session = await checkAuth({ requiredPermission: "characteristic_create" })
 
             const { name, description, type, options, units } = parsedInput
 
@@ -82,7 +82,7 @@ export const updateCharacteristicAction = actionClient
     .schema(updateCharacteristicSchema)
     .action(async ({ parsedInput }) => {
         try {
-            const session = await checkAuth({ requiredPermission: "charac_edit" })
+            const session = await checkAuth({ requiredPermission: "characteristic_edit" })
 
             const { id, name, description } = parsedInput
 
@@ -100,7 +100,7 @@ export const deleteCharacteristicAction = actionClient
     .schema(deleteCharacteristicSchema)
     .action(async ({ parsedInput }) => {
         try {
-            const session = await checkAuth({ requiredPermission: "charac_create" })
+            const session = await checkAuth({ requiredPermission: "characteristic_create" })
 
             const { id } = parsedInput
 
