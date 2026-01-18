@@ -190,13 +190,13 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
 
                 if (result?.serverError) {
                     console.error(result?.serverError)
-                    return toast.error("Failed to update characteristic")
+                    return toast.error(t("updateError"))
                 } else if (result?.validationErrors) {
                     console.error(result?.validationErrors)
-                    return toast.error("Failed to update characteristic")
+                    return toast.error(t("updateError"))
                 } else if (!result?.data) {
                     console.error("No data returned")
-                    return toast.error("Failed to update characteristic")
+                    return toast.error(t("updateError"))
                 }
 
                 toast.success(t("updateSuccess"))
@@ -242,13 +242,13 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
 
         if (result?.serverError) {
             console.error(result?.serverError)
-            return toast.error("Failed to delete characteristic")
+            return toast.error(t("deleteError"))
         } else if (result?.validationErrors) {
             console.error(result?.validationErrors)
-            return toast.error("Failed to delete characteristic")
+            return toast.error(t("deleteError"))
         } else if (!result?.data) {
             console.error("No data returned")
-            return toast.error("Failed to delete characteristic")
+            return toast.error(t("deleteError"))
         }
         toast.success(t("deleteSuccess"))
         handleClose(true)

@@ -34,6 +34,7 @@ export function MaterialManagement() {
     const [sortField, setSortField] = useState<SortField>("updatedAt")
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
     const t = useTranslations("Materials")
+    const tCommon = useTranslations("Common")
 
     const loadMaterials = async () => {
         try {
@@ -41,7 +42,7 @@ export function MaterialManagement() {
             setMaterials(materialsData)
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load materials")
+            toast.error(t("errors.loadFailed"))
         }
     }
     
@@ -146,7 +147,7 @@ export function MaterialManagement() {
                             </Badge>
                         ))
                     ) : (
-                        <span className="text-muted-foreground">-</span>
+                        <span className="text-muted-foreground">{tCommon("none")}</span>
                     )}
                 </div>
             ),
@@ -208,7 +209,7 @@ export function MaterialManagement() {
                 keyExtractor={(material) => material.id}
                 pageSizeOptions={[15, 50, 100]}
                 defaultPageSize={15}
-                noDataMessage="No materials found."
+                noDataMessage={t("noData")}
             />
 
             <MaterialDialog

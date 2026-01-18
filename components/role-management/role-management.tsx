@@ -46,7 +46,7 @@ export function RoleManagement() {
                 setPermissions(permissionsData)
             } catch (error) {
                 console.error(error)
-                toast.error("Failed to load data")
+                toast.error(t("dialog.error.UpdateRoleFail"))
             }
         }
 
@@ -198,10 +198,10 @@ export function RoleManagement() {
                 setSelectedRole(updatedRole)
             }
 
-            toast.success("Permissions updated successfully")
+            toast.success(t("dialog.success.UpdateRoleSuccess"))
         } catch (error) {
             console.error(error)
-            toast.error("Failed to update permissions")
+            toast.error(t("dialog.error.UpdateRoleFail"))
         } finally {
             setIsSubmitting(false)
         }

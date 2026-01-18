@@ -158,9 +158,9 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
                         textHolder={common("selectDateRange")}
                         className="w-full sm:w-auto"
                         hoursText={{
-                            label: common("language") === "fr" ? "Heures" : "Hours",
-                            from: common("language") === "fr" ? "De" : "From",
-                            to: common("language") === "fr" ? "À" : "To",
+                            label: historyT("hours"),
+                            from: historyT("from"),
+                            to: historyT("to"),
                         }}
                     />
                     <Button

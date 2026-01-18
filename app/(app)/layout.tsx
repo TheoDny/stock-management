@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth"
 import { PermissionModel as Permission } from "@/prisma/generated/models/Permission"
 import { ConfirmDialogProvider } from "@/provider/ConfirmationProvider"
 import { NavigationGroupType, NavigationType } from "@/types/navigation.type"
-import { Boxes, IdCard, Logs, Users } from "lucide-react"
+import { Boxes, IdCard, ListTree, Logs, SquareChartGantt, Tags, Users } from "lucide-react"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale, getTranslations } from "next-intl/server"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
@@ -51,7 +51,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
         if (permissions.has("user_read") || permissions.has("role_read") || permissions.has("log_read")) {
             const adminGroup: NavigationGroupType = {
-                title: "Administration",
+                title: tSidebar("administration"),
                 items: [],
             }
             if (permissions.has("role_read")) {
@@ -76,6 +76,43 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 })
             }
             navigation.groups.push(adminGroup)
+        }
+
+        if (permissions.has("characteristic_read") || permissions.has("tag_read")) {
+            const ConfigGroup: NavigationGroupType = {
+                title: tSidebar("configuration"),
+                items: [],
+            }
+            if (permissions.has("characteristic_read")) {
+                ConfigGroup.items.push({
+                    title: tSidebar("characteristics"),
+                    url: "/configuration/characteristics",
+                    icon: <ListTree />,
+                })
+            }
+            if (permissions.has("tag_read")) {
+                ConfigGroup.items.push({
+                    title: tSidebar("tags"),
+                    url: "/configuration/tags",
+                    icon: <Tags />,
+                })
+            }
+            navigation.groups.push(ConfigGroup)
+        }
+
+        if (permissions.has("material_read")) {
+            const ConfigGroup: NavigationGroupType = {
+                title: tSidebar("materials"),
+                items: [],
+            }
+            if (permissions.has("material_read")) {
+                ConfigGroup.items.push({
+                    title: tSidebar("materials"),
+                    url: "/materials",
+                    icon: <SquareChartGantt />,
+                })
+            }
+            navigation.groups.push(ConfigGroup)
         }
 
         return navigation

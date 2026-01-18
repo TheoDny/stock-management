@@ -33,7 +33,7 @@ export function CharacteristicManagement() {
             setCharacteristics(characteristicsData)
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load characteristics")
+            toast.error(t("errors.loadFailed"))
         }
     }
 
@@ -108,39 +108,39 @@ export function CharacteristicManagement() {
     const columns: Column<CharacteristicAndCountMaterial>[] = [
         {
             key: "name",
-            header: "Name",
+            header: t("columns.name"),
             cell: (characteristic) => <div className="font-medium">{characteristic.name}</div>,
         },
         {
             key: "description",
-            header: "Description",
+            header: t("columns.description"),
             cell: (characteristic) => <div className="max-w-[200px] truncate">{characteristic.description}</div>,
         },
         {
             key: "type",
-            header: "Type",
+            header: t("columns.type"),
             cell: (characteristic) => (
                 <Badge className={getTypeColor(characteristic.type)}>{characteristic.type}</Badge>
             ),
         },
         {
             key: "options",
-            header: "Options",
+            header: t("columns.options"),
             cell: () => null, // TODO handle option with different type
         },
         {
             key: "units",
-            header: "Units",
-            cell: (characteristic) => characteristic.units || <span className="text-muted-foreground">None</span>,
+            header: t("columns.units"),
+            cell: (characteristic) => characteristic.units || <span className="text-muted-foreground">{tCommon("none")}</span>,
         },
         {
             key: "materialsCount",
-            header: "Materials",
+            header: t("columns.materials"),
             cell: (characteristic) => characteristic._count.Materials,
         },
         {
             key: "actions",
-            header: "Actions",
+            header: t("columns.actions"),
             cell: (characteristic) => (
                 <Button
                     variant="ghost"
@@ -177,7 +177,7 @@ export function CharacteristicManagement() {
                 keyExtractor={(characteristic) => characteristic.id}
                 pageSizeOptions={[15, 50, 100]}
                 defaultPageSize={15}
-                noDataMessage="No characteristics found."
+                noDataMessage={t("noData")}
             />
 
             <CharacteristicDialog

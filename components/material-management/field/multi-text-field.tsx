@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
-import { Plus, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 interface MultiTextFieldProps {
     value: { multiText: { title: string; text: string }[] } | null
@@ -19,9 +20,12 @@ export function MultiTextField({
     onChange,
     className,
     useTextArea = false,
-    titlePlaceholder = "Enter title",
-    textPlaceholder = "Enter content",
+    titlePlaceholder,
+    textPlaceholder,
 }: MultiTextFieldProps) {
+    const tCommon = useTranslations("Common")
+    const defaultTitlePlaceholder = titlePlaceholder || tCommon("enterTextValue")
+    const defaultTextPlaceholder = textPlaceholder || tCommon("enterDetailedText")
     const [items, setItems] = useState<{ title: string; text: string }[]>([{ title: "", text: "" }])
 
     // Initialize from value prop
@@ -76,7 +80,7 @@ export function MultiTextField({
                             id={`multitext-title-${index}`}
                             value={item.title}
                             onChange={(e) => handleItemChange(index, "title", e.target.value)}
-                            placeholder={titlePlaceholder}
+                            placeholder={defaultTitlePlaceholder}
                         />
                     </div>
 
@@ -86,7 +90,7 @@ export function MultiTextField({
                                 id={`multitext-content-${index}`}
                                 value={item.text}
                                 onChange={(e) => handleItemChange(index, "text", e.target.value)}
-                                placeholder={textPlaceholder}
+                                placeholder={defaultTextPlaceholder}
                                 className="resize-none"
                             />
                         ) : (
@@ -94,7 +98,7 @@ export function MultiTextField({
                                 id={`multitext-content-${index}`}
                                 value={item.text}
                                 onChange={(e) => handleItemChange(index, "text", e.target.value)}
-                                placeholder={textPlaceholder}
+                                placeholder={defaultTextPlaceholder}
                             />
                         )}
                     </div>
@@ -108,7 +112,7 @@ export function MultiTextField({
                 className="w-full"
             >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Item
+                {tCommon("add")}
             </Button>
         </div>
     )

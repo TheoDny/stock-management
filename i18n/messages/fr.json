@@ -3,7 +3,121 @@
         "administration": "Administration",
         "users": "Gestion des utilisateurs",
         "roles": "Gestion des rôles",
-        "logs": "Journaux d'êvenements"
+        "logs": "Journaux d'êvenements",
+        "configuration": "Configuration",
+        "characteristics": "Caractéristiques",
+        "tags": "Tags",
+        "materials": "Matériels"
+    },
+    "Configuration": {
+        "characteristics": {
+            "title": "Gestion des Caractéristiques",
+            "description": "Créer, modifier et gérer les caractéristiques",
+            "search": "Rechercher des caractéristiques...",
+            "newCharacteristic": "Nouvelle Caractéristique",
+            "columns": {
+                "name": "Nom",
+                "description": "Description",
+                "type": "Type",
+                "options": "Options",
+                "units": "Unités",
+                "materials": "Matériels",
+                "actions": "Actions"
+            },
+            "noData": "Aucune caractéristique trouvée.",
+            "errors": {
+                "loadFailed": "Échec du chargement des caractéristiques"
+            },
+            "dialog": {
+                "create": "Créer une Caractéristique",
+                "edit": "Modifier une Caractéristique",
+                "createDescription": "Remplissez les détails pour créer une nouvelle caractéristique.",
+                "editDescription": "Mettez à jour les détails de la caractéristique ci-dessous.",
+                "name": "Nom",
+                "namePlaceholder": "Nom de la caractéristique",
+                "description": "Description",
+                "descriptionPlaceholder": "Description de la caractéristique",
+                "type": "Type",
+                "selectType": "Sélectionner un type",
+                "options": "Options",
+                "addOptionPlaceholder": "Ajouter une option",
+                "currentOptions": "Options actuelles",
+                "removeOption": "Supprimer l'option",
+                "atLeastTwoOptions": "Au moins deux options sont requises",
+                "unit": "Unité",
+                "unitPlaceholder": "Unité (ex: kg, m, L)",
+                "nameCannotBeChanged": "Le nom ne peut pas être modifié après la création",
+                "typeCannotBeChanged": "Le type ne peut pas être modifié après la création",
+                "optionsCannotBeChanged": "Les options ne peuvent pas être modifiées après la création",
+                "unitCannotBeChanged": "L'unité ne peut pas être modifiée après la création",
+                "optionAlreadyExists": "Cette option existe déjà",
+                "optionsRequired": "Les options sont requises pour ce type",
+                "cannotDeleteUsed": "Impossible de supprimer une caractéristique utilisée par du matériel",
+                "createSuccess": "Caractéristique créée avec succès",
+                "updateSuccess": "Caractéristique mise à jour avec succès",
+                "deleteSuccess": "Caractéristique supprimée avec succès",
+                "createError": "Erreur lors de la création de la caractéristique",
+                "updateError": "Erreur lors de la mise à jour de la caractéristique",
+                "deleteError": "Erreur lors de la suppression de la caractéristique"
+            },
+            "types": {
+                "boolean": "Booléen",
+                "number": "Nombre",
+                "float": "Décimal",
+                "text": "Texte",
+                "textarea": "Zone de texte",
+                "multiText": "Texte multiple",
+                "multiTextArea": "Zone de texte multiple",
+                "checkbox": "Cases à cocher",
+                "select": "Sélection",
+                "radio": "Boutons radio",
+                "multiSelect": "Sélection multiple",
+                "date": "Date",
+                "dateHour": "Date et heure",
+                "dateRange": "Plage de dates",
+                "dateHourRange": "Plage de dates et heures",
+                "email": "Email",
+                "link": "Lien",
+                "file": "Fichier"
+            }
+        },
+        "tags": {
+            "title": "Gestion des Tags",
+            "description": "Créer, modifier et gérer les tags",
+            "search": "Rechercher des tags...",
+            "newTag": "Nouveau Tag",
+            "columns": {
+                "name": "Nom",
+                "colorText": "Couleur du texte",
+                "color": "Couleur",
+                "materials": "Matériels",
+                "actions": "Actions"
+            },
+            "noData": "Aucun tag trouvé.",
+            "errors": {
+                "loadFailed": "Échec du chargement des tags"
+            },
+            "dialog": {
+                "create": "Créer un Tag",
+                "edit": "Modifier un Tag",
+                "createDescription": "Remplissez les détails pour créer un nouveau tag.",
+                "editDescription": "Mettez à jour les détails du tag ci-dessous.",
+                "name": "Nom",
+                "namePlaceholder": "Nom du tag",
+                "textColor": "Couleur du texte",
+                "backgroundColor": "Couleur de fond",
+                "preview": "Aperçu",
+                "nameHelp": "Le nom du tag sera affiché avec les couleurs sélectionnées",
+                "nameUpdateWarning": "La modification du nom peut affecter le matériel existants",
+                "cannotDeleteUsed": "Impossible de supprimer un tag utilisé par du matériel",
+                "createSuccess": "Tag créé avec succès",
+                "updateSuccess": "Tag mis à jour avec succès",
+                "deleteSuccess": "Tag supprimé avec succès",
+                "createError": "Erreur lors de la création du tag",
+                "updateError": "Erreur lors de la mise à jour du tag",
+                "deleteError": "Erreur lors de la suppression du tag"
+            }
+        }
     },
     "Navigation": {
         "users": "Utilisateurs",
@@ -36,7 +150,8 @@
         "passwordLength": "Le mot de passe doit contenir entre 16 et 64 caractères",
         "passwordUppercase": "Le mot de passe doit contenir au moins 1 lettre majuscule",
         "passwordNumber": "Le mot de passe doit contenir au moins 1 chiffre",
-        "passwordSpecialChar": "Le mot de passe doit contenir au moins 1 caractère spécial"
+        "passwordSpecialChar": "Le mot de passe doit contenir au moins 1 caractère spécial",
+        "signUpRoleError": "Échec de l'inscription du rôle"
     },
     "ForgotPassword": {
         "title": "Mot de passe oublié",
@@ -241,7 +356,16 @@
         "role_read": "Accès à la page de gestion des rôles",
         "role_create": "Créer un nouveau rôle",
         "role_edit": "Modifier les informations d'un rôle et les permissions associées",
-        "log_read": "Accès à la page de gestion des journaux d'événements"
+        "log_read": "Accès à la page de gestion des journaux d'événements",
+        "tag_read": "Accès à la page de configuration des tags",
+        "tag_create": "Créer un nouveau tag",
+        "tag_edit": "Modifier les informations d'un tag",
+        "characteristic_read": "Accès à la page de configuration des caractéristiques",
+        "characteristic_create": "Créer une nouvelle caractéristique",
+        "characteristic_edit": "Modifier les informations d'une caractéristique",
+        "material_read": "Accès à la page de configuration de matériel",
+        "material_create": "Créer un nouveau matériel",
+        "material_edit": "Modifier les informations d'un matériel"
     },
     "Common": {
         "update": "Mettre à jour",
@@ -270,7 +394,24 @@
         "close": "Fermer",
         "back": "Retour",
         "noOptions": "Aucune option disponible",
-        "refresh": "Rafraîchir"
+        "refresh": "Rafraîchir",
+        "selectDateRange": "Sélectionner un intervalle de dates",
+        "filter": "Filtrer",
+        "none": "Aucun",
+        "preview": "Aperçu",
+        "from": "De",
+        "to": "À",
+        "selectDate": "Sélectionner une date",
+        "selectStartDate": "Sélectionner la date de début",
+        "selectEndDate": "Sélectionner la date de fin",
+        "enterTextValue": "Entrer une valeur texte",
+        "enterDetailedText": "Entrer un texte détaillé",
+        "enterEmailAddress": "Entrer une adresse email",
+        "enterURL": "Entrer une URL",
+        "enterNumber": "Entrer un nombre",
+        "enterDecimalNumber": "Entrer un nombre décimal",
+        "selectOption": "Sélectionner une option",
+        "time": "Heure"
     },
     "Logs": {
         "label": {
@@ -334,5 +475,82 @@
         "title": "Interdit",
         "description": "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
         "backToHome": "Retour à l'accueil"
+    },
+    "Materials": {
+        "title": "Gestion de Matériel",
+        "description": "Créer, modifier et gérer du matériel",
+        "search": "Rechercher du matériel...",
+        "newMaterial": "Nouveau Matériel",
+        "columns": {
+            "name": "Nom",
+            "tags": "Tags",
+            "updatedAt": "Modifié le",
+            "actions": "Actions"
+        },
+        "noData": "Aucun matériau trouvé.",
+        "errors": {
+            "loadFailed": "Échec du chargement de matériel",
+            "loadTagsFailed": "Échec du chargement des tags",
+            "loadCharacteristicsFailed": "Échec du chargement des caractéristiques",
+            "loadMaterialCharacteristicsFailed": "Échec du chargement des caractéristiques du matériau",
+            "updateFailed": "Échec de la mise à jour du matériau",
+            "createFailed": "Échec de la création du matériau"
+        },
+        "success": {
+            "updateSuccess": "Matériau mis à jour avec succès",
+            "createSuccess": "Matériau créé avec succès"
+        },
+        "dialog": {
+            "create": "Créer un Matériau",
+            "edit": "Modifier un Matériau",
+            "createDescription": "Remplissez les détails pour créer un nouveau matériau.",
+            "editDescription": "Mettez à jour les détails du matériau ci-dessous.",
+            "name": "Nom",
+            "namePlaceholder": "Nom du matériau",
+            "description": "Description",
+            "descriptionPlaceholder": "Description du matériau",
+            "general": "Général",
+            "tags": "Tags",
+            "characteristics": "Caractéristiques",
+            "addCharacteristics": "Ajouter des caractéristiques",
+            "tagsUnavailable": "Aucun tag disponible",
+            "characteristicsUnavailable": "Aucune caractéristique disponible",
+            "noCharacteristics": "Aucune caractéristique ajoutée"
+        },
+        "history": {
+            "title": "Historique du Matériau",
+            "noHistory": "Aucun historique trouvé pour ce matériau"
+        },
+        "files": {
+            "uploadFiles": "Télécharger des fichiers",
+            "newFiles": "Nouveaux fichiers",
+            "existingFiles": "Fichiers existants",
+            "view": "Voir",
+            "download": "Télécharger",
+            "markedForDeletion": "Marqué pour suppression",
+            "fileSizeError": "Le fichier {files} dépasse la taille maximale de {size}",
+            "totalSizeError": "La taille totale {size} dépasse la limite de {maxSize}",
+            "loadImageFailed": "Échec du chargement de l'image"
+        }
+    },
+    "MaterialHistory": {
+        "title": "Historique",
+        "recordFor": "Enregistrement pour",
+        "detailsAndTags": "Détails et Tags",
+        "characteristics": "Caractéristiques",
+        "name": "Nom",
+        "description": "Description",
+        "createdAt": "Créé le",
+        "tags": "Tags",
+        "noTags": "Aucun tag",
+        "noCharacteristics": "Aucune caractéristique",
+        "na": "N/A",
+        "serverError": "Erreur serveur lors du chargement de l'historique",
+        "validationError": "Erreur de validation lors du chargement de l'historique",
+        "noData": "Aucune donnée retournée",
+        "failedToLoad": "Échec du chargement de l'historique",
+        "hours": "Heures",
+        "from": "De",
+        "to": "À"
     }
 }

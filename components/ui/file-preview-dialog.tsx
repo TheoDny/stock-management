@@ -18,6 +18,7 @@ interface FilePreviewDialogProps {
 export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileType }: FilePreviewDialogProps) {
     const t = useTranslations("Materials.files")
     const tCommon = useTranslations("Common")
+    const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [textContent, setTextContent] = useState<string | null>(null)
@@ -89,7 +90,9 @@ export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileT
                         height={600}
                         className="max-h-[70vh] object-scale-down"
                         style={{ width: "auto", height: "auto" }}
-                        onError={() => setError("Failed to load image")}
+                        onError={() => {
+                            setError(t("loadImageFailed"))
+                        }}
                     />
                 </div>
             )

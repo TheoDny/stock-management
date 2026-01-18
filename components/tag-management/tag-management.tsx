@@ -32,7 +32,7 @@ export function TagManagement() {
             setTags(tagsData)
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load tags")
+            toast.error(t("errors.loadFailed"))
         }
     }
 
@@ -105,7 +105,7 @@ export function TagManagement() {
     const columns: Column<TagAndCountMaterial>[] = [
         {
             key: "name",
-            header: "Name",
+            header: t("columns.name"),
             cell: (tag) => (
                 <Badge
                     style={{
@@ -119,12 +119,12 @@ export function TagManagement() {
         },
         {
             key: "fontColor",
-            header: "Color Text",
+            header: t("columns.colorText"),
             cell: (tag) => tag.fontColor,
         },
         {
             key: "color",
-            header: "Color",
+            header: t("columns.color"),
             cell: (tag) => (
                 <div
                     className="w-6 h-6 rounded-full"
@@ -134,12 +134,12 @@ export function TagManagement() {
         },
         {
             key: "materialsCount",
-            header: "Materials",
+            header: t("columns.materials"),
             cell: (tag) => tag._count.Materials,
         },
         {
             key: "actions",
-            header: "Actions",
+            header: t("columns.actions"),
             cell: (tag) => (
                 <Button
                     variant="ghost"
@@ -176,7 +176,7 @@ export function TagManagement() {
                 keyExtractor={(tag) => tag.id}
                 pageSizeOptions={[15, 50, 100]}
                 defaultPageSize={15}
-                noDataMessage="No tags found."
+                noDataMessage={t("noData")}
             />
 
             <TagDialog

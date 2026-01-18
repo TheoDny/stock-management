@@ -71,6 +71,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
     const tCommon = useTranslations("Common")
     const tMaterialDialog = useTranslations("Materials.dialog")
+    const tMaterials = useTranslations("Materials")
 
     const isEditing = !!material
 
@@ -130,7 +131,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             setTags(tagsData)
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load tags")
+            toast.error(tMaterials("errors.loadTagsFailed"))
         }
     }
 
@@ -140,7 +141,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             setCharacteristics(characteristicsData)
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load characteristics")
+            toast.error(tMaterials("errors.loadCharacteristicsFailed"))
         }
     }
 
@@ -173,7 +174,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             setCharacteristicValues(processedValues)
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load material characteristics")
+            toast.error(tMaterials("errors.loadMaterialCharacteristicsFailed"))
         }
     }
 
@@ -254,16 +255,16 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
 
                 if (result?.serverError) {
                     console.error(result?.serverError)
-                    return toast.error("Failed to update material")
+                    return toast.error(tMaterials("errors.updateFailed"))
                 } else if (result?.validationErrors) {
                     console.error(result?.validationErrors)
-                    return toast.error("Failed to update material")
+                    return toast.error(tMaterials("errors.updateFailed"))
                 } else if (!result?.data) {
                     console.error("No data returned")
-                    return toast.error("Failed to update material")
+                    return toast.error(tMaterials("errors.updateFailed"))
                 }
 
-                toast.success("Material updated successfully")
+                toast.success(tMaterials("success.updateSuccess"))
             } else {
                 const processedCharacteristicValues = characteristicValues.map((cv) => {
                     // If it's a file characteristic, ensure it's in the proper format for saving
@@ -331,22 +332,22 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
 
                 if (result?.serverError) {
                     console.error(result?.serverError)
-                    return toast.error("Failed to create material")
+                    return toast.error(tMaterials("errors.createFailed"))
                 } else if (result?.validationErrors) {
                     console.error(result?.validationErrors)
-                    return toast.error("Failed to create material")
+                    return toast.error(tMaterials("errors.createFailed"))
                 } else if (!result?.data) {
                     console.error("No data returned")
-                    return toast.error("Failed to create material")
+                    return toast.error(tMaterials("errors.createFailed"))
                 }
 
-                toast.success("Material created successfully")
+                toast.success(tMaterials("success.createSuccess"))
             }
 
             handleClose(true)
         } catch (error) {
             console.error(error)
-            toast.error(isEditing ? "Failed to update material" : "Failed to create material")
+            toast.error(isEditing ? tMaterials("errors.updateFailed") : tMaterials("errors.createFailed"))
         } finally {
             setIsSubmitting(false)
         }
@@ -505,7 +506,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                 <FormLabel>{tMaterialDialog("name")}</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="Material name"
+                                                        placeholder={tMaterialDialog("namePlaceholder")}
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -522,7 +523,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                 <FormLabel>{tMaterialDialog("description")}</FormLabel>
                                                 <FormControl>
                                                     <Textarea
-                                                        placeholder="Material description"
+                                                        placeholder={tMaterialDialog("descriptionPlaceholder")}
                                                         className="resize-none"
                                                         {...field}
                                                     />

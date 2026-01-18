@@ -57,7 +57,7 @@ export function UserManagement({ sessionUser }: { sessionUser: User & { Entities
                 setRoles(rolesData)
             } catch (error) {
                 console.error(error)
-                toast.error("Failed to load data")
+                toast.error(t("dialog.error.UpdateUserFail"))
             }
         }
 
@@ -231,10 +231,10 @@ export function UserManagement({ sessionUser }: { sessionUser: User & { Entities
                 setSelectedUser(updatedUser)
             }
 
-            toast.success("Roles updated successfully")
+            toast.success(t("dialog.success.UpdateUserSuccess"))
         } catch (error) {
             console.error(error)
-            toast.error("Failed to update roles")
+            toast.error(t("dialog.error.UpdateUserFail"))
         } finally {
             setIsSubmitting(false)
         }

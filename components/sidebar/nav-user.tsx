@@ -36,6 +36,7 @@ export function NavUser({
     const { isMobile, open } = useSidebar()
     const t = useTranslations("Navigation")
     const tAccount = useTranslations("Account.profile")
+    const tCommon = useTranslations("Common")
 
     const handleEntityChange = async (entityId: string) => {
         try {
@@ -44,7 +45,7 @@ export function NavUser({
             window.location.reload()
         } catch (error) {
             console.error(error)
-            toast.error("Failed to change entity")
+            toast.error(tCommon("error"))
         }
     }
 

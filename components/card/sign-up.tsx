@@ -71,10 +71,10 @@ export function SignUp({ token, name, email }: SignUpProps) {
             return setError(result?.serverError)
         } else if (result?.validationErrors) {
             setLoading(false)
-            return setError("Failed to sign up role")
+            return setError(tSignUp("signUpRoleError"))
         } else if (!result?.data) {
             setLoading(false)
-            return setError("Failed to sign up role")
+            return setError(tSignUp("signUpRoleError"))
         }
 
         setLoading(false)

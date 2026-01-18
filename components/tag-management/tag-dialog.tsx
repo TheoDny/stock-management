@@ -178,7 +178,7 @@ export function TagDialog({ open, tag, onClose }: TagDialogProps) {
                     color: fontColor,
                 }}
             >
-                {name || "Preview"}
+                {name || t("preview")}
             </Badge>
         )
     }

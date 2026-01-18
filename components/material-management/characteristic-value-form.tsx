@@ -367,7 +367,7 @@ export function CharacteristicValueForm({
                     <Input
                         value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder="Enter text value"
+                        placeholder={tCommon("enterTextValue")}
                     />
                 )
 
@@ -376,7 +376,7 @@ export function CharacteristicValueForm({
                     <Textarea
                         value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder="Enter detailed text"
+                        placeholder={tCommon("enterDetailedText")}
                         className="resize-none"
                     />
                 )
@@ -387,6 +387,7 @@ export function CharacteristicValueForm({
                         value={value || 0}
                         onChange={onChange}
                         units={units}
+                        placeholder={tCommon("enterNumber")}
                     />
                 )
 
@@ -396,6 +397,7 @@ export function CharacteristicValueForm({
                         value={value || ""}
                         onChange={onChange}
                         units={units}
+                        placeholder={tCommon("enterDecimalNumber")}
                     />
                 )
 
@@ -422,6 +424,7 @@ export function CharacteristicValueForm({
                         value={value || ""}
                         onChange={onChange}
                         options={optionsArray}
+                        placeholder={tCommon("selectOption")}
                     />
                 )
 
@@ -450,6 +453,8 @@ export function CharacteristicValueForm({
                         value={value}
                         onChange={onChange}
                         useTextArea={type === "multiTextArea"}
+                        titlePlaceholder={tCommon("enterTextValue")}
+                        textPlaceholder={tCommon("enterDetailedText")}
                     />
                 )
 
@@ -462,7 +467,7 @@ export function CharacteristicValueForm({
                                 className={`w-full justify-start text-left font-normal ${!dates.date && "text-muted-foreground"}`}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {dates.date ? formatDate(dates.date) : "Select a date"}
+                                {dates.date ? formatDate(dates.date) : tCommon("selectDate")}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -489,7 +494,7 @@ export function CharacteristicValueForm({
                 return (
                     <div className="space-y-2">
                         <div>
-                            <Label>From</Label>
+                            <Label>{tCommon("from")}</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -497,7 +502,7 @@ export function CharacteristicValueForm({
                                         className={`w-full justify-start text-left font-normal ${!dates.from && "text-muted-foreground"}`}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {dates.from ? formatDate(dates.from) : "Select start date"}
+                                        {dates.from ? formatDate(dates.from) : tCommon("selectStartDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
@@ -512,7 +517,7 @@ export function CharacteristicValueForm({
                         </div>
 
                         <div>
-                            <Label>To</Label>
+                            <Label>{tCommon("to")}</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -520,7 +525,7 @@ export function CharacteristicValueForm({
                                         className={`w-full justify-start text-left font-normal ${!dates.to && "text-muted-foreground"}`}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {dates.to ? formatDate(dates.to) : "Select end date"}
+                                        {dates.to ? formatDate(dates.to) : tCommon("selectEndDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
@@ -540,7 +545,7 @@ export function CharacteristicValueForm({
                 return (
                     <div className="space-y-4">
                         <div>
-                            <Label>From</Label>
+                            <Label>{tCommon("from")}</Label>
                             <DateTimeInput
                                 date={dates.from}
                                 onDateChange={handleDateRangeChange("from")}
@@ -549,7 +554,7 @@ export function CharacteristicValueForm({
                         </div>
 
                         <div>
-                            <Label>To</Label>
+                            <Label>{tCommon("to")}</Label>
                             <DateTimeInput
                                 date={dates.to}
                                 onDateChange={handleDateRangeChange("to")}
@@ -565,7 +570,7 @@ export function CharacteristicValueForm({
                         type="email"
                         value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder="Enter email address"
+                        placeholder={tCommon("enterEmailAddress")}
                     />
                 )
 
@@ -575,7 +580,7 @@ export function CharacteristicValueForm({
                         type="url"
                         value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
-                        placeholder="Enter URL"
+                        placeholder={tCommon("enterURL")}
                     />
                 )
 

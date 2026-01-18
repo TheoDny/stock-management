@@ -3,7 +3,121 @@
         "administration": "Administration",
         "users": "Users management",
         "roles": "Roles management",
-        "logs": "Log"
+        "logs": "Log",
+        "configuration": "Configuration",
+        "characteristics": "Characteristics",
+        "tags": "Tags",
+        "materials": "Materials"
+    },
+    "Configuration": {
+        "characteristics": {
+            "title": "Characteristics Management",
+            "description": "Create, edit and manage characteristics",
+            "search": "Search characteristics...",
+            "newCharacteristic": "New Characteristic",
+            "columns": {
+                "name": "Name",
+                "description": "Description",
+                "type": "Type",
+                "options": "Options",
+                "units": "Units",
+                "materials": "Materials",
+                "actions": "Actions"
+            },
+            "noData": "No characteristics found.",
+            "errors": {
+                "loadFailed": "Failed to load characteristics"
+            },
+            "dialog": {
+                "create": "Create Characteristic",
+                "edit": "Edit Characteristic",
+                "createDescription": "Fill in the details to create a new characteristic.",
+                "editDescription": "Update the characteristic details below.",
+                "name": "Name",
+                "namePlaceholder": "Characteristic name",
+                "description": "Description",
+                "descriptionPlaceholder": "Characteristic description",
+                "type": "Type",
+                "selectType": "Select a type",
+                "options": "Options",
+                "addOptionPlaceholder": "Add an option",
+                "currentOptions": "Current options",
+                "removeOption": "Remove option",
+                "atLeastTwoOptions": "At least two options are required",
+                "unit": "Unit",
+                "unitPlaceholder": "Unit (e.g., kg, m, L)",
+                "nameCannotBeChanged": "Name cannot be changed after creation",
+                "typeCannotBeChanged": "Type cannot be changed after creation",
+                "optionsCannotBeChanged": "Options cannot be changed after creation",
+                "unitCannotBeChanged": "Unit cannot be changed after creation",
+                "optionAlreadyExists": "This option already exists",
+                "optionsRequired": "Options are required for this type",
+                "cannotDeleteUsed": "Cannot delete a characteristic used by materials",
+                "createSuccess": "Characteristic created successfully",
+                "updateSuccess": "Characteristic updated successfully",
+                "deleteSuccess": "Characteristic deleted successfully",
+                "createError": "Error while creating characteristic",
+                "updateError": "Error while updating characteristic",
+                "deleteError": "Error while deleting characteristic"
+            },
+            "types": {
+                "boolean": "Boolean",
+                "number": "Number",
+                "float": "Float",
+                "text": "Text",
+                "textarea": "Textarea",
+                "multiText": "Multi Text",
+                "multiTextArea": "Multi Textarea",
+                "checkbox": "Checkbox",
+                "select": "Select",
+                "radio": "Radio",
+                "multiSelect": "Multi Select",
+                "date": "Date",
+                "dateHour": "Date and Hour",
+                "dateRange": "Date Range",
+                "dateHourRange": "Date and Hour Range",
+                "email": "Email",
+                "link": "Link",
+                "file": "File"
+            }
+        },
+        "tags": {
+            "title": "Tags Management",
+            "description": "Create, edit and manage tags",
+            "search": "Search tags...",
+            "newTag": "New Tag",
+            "columns": {
+                "name": "Name",
+                "colorText": "Color Text",
+                "color": "Color",
+                "materials": "Materials",
+                "actions": "Actions"
+            },
+            "noData": "No tags found.",
+            "errors": {
+                "loadFailed": "Failed to load tags"
+            },
+            "dialog": {
+                "create": "Create Tag",
+                "edit": "Edit Tag",
+                "createDescription": "Fill in the details to create a new tag.",
+                "editDescription": "Update the tag details below.",
+                "name": "Name",
+                "namePlaceholder": "Tag name",
+                "textColor": "Text Color",
+                "backgroundColor": "Background Color",
+                "preview": "Preview",
+                "nameHelp": "The tag name will be displayed with the selected colors",
+                "nameUpdateWarning": "Changing the name may affect existing materials",
+                "cannotDeleteUsed": "Cannot delete a tag used by materials",
+                "createSuccess": "Tag created successfully",
+                "updateSuccess": "Tag updated successfully",
+                "deleteSuccess": "Tag deleted successfully",
+                "createError": "Error while creating tag",
+                "updateError": "Error while updating tag",
+                "deleteError": "Error while deleting tag"
+            }
+        }
     },
     "Navigation": {
         "users": "Users",
@@ -36,7 +150,8 @@
         "passwordLength": "Password must be between 16 and 64 characters",
         "passwordUppercase": "Password must contain at least 1 uppercase letter",
         "passwordNumber": "Password must contain at least 1 number",
-        "passwordSpecialChar": "Password must contain at least 1 special character"
+        "passwordSpecialChar": "Password must contain at least 1 special character",
+        "signUpRoleError": "Failed to sign up role"
     },
     "ForgotPassword": {
         "title": "Forgot Password",
@@ -242,7 +357,16 @@
         "role_read": "Access to the role management page",
         "role_create": "Create a new role",
         "role_edit": "Edit the information of a role and the permission associated",
-        "log_read": "Access to the log management page"
+        "log_read": "Access to the log management page",
+        "tag_read": "Access to the tag management page",
+        "tag_create": "Create a new tag",
+        "tag_edit": "Edit the information of a tag",
+        "characteristic_read": "Access to the characteristic management page",
+        "characteristic_create": "Create a new characteristic",
+        "characteristic_edit": "Edit the information of a characteristic",
+        "material_read": "Access to the material management page",
+        "material_create": "Create a new material",
+        "material_edit": "Edit the information of a material"
     },
     "Common": {
         "update": "Update",
@@ -271,7 +395,24 @@
         "close": "Close",
         "back": "Back",
         "noOptions": "No options available",
-        "refresh": "Refresh"
+        "refresh": "Refresh",
+        "selectDateRange": "Select date range",
+        "filter": "Filter",
+        "none": "None",
+        "preview": "Preview",
+        "from": "From",
+        "to": "To",
+        "selectDate": "Select a date",
+        "selectStartDate": "Select start date",
+        "selectEndDate": "Select end date",
+        "enterTextValue": "Enter text value",
+        "enterDetailedText": "Enter detailed text",
+        "enterEmailAddress": "Enter email address",
+        "enterURL": "Enter URL",
+        "enterNumber": "Enter number",
+        "enterDecimalNumber": "Enter decimal number",
+        "selectOption": "Select an option",
+        "time": "Time"
     },
     "Logs": {
         "label": {
@@ -332,5 +473,82 @@
         "title": "Forbidden",
         "description": "You do not have the necessary permissions to access this page.",
         "backToHome": "Back to Home"
+    },
+    "Materials": {
+        "title": "Materials Management",
+        "description": "Create, edit and manage materials",
+        "search": "Search materials...",
+        "newMaterial": "New Material",
+        "columns": {
+            "name": "Name",
+            "tags": "Tags",
+            "updatedAt": "Updated At",
+            "actions": "Actions"
+        },
+        "noData": "No materials found.",
+        "errors": {
+            "loadFailed": "Failed to load materials",
+            "loadTagsFailed": "Failed to load tags",
+            "loadCharacteristicsFailed": "Failed to load characteristics",
+            "loadMaterialCharacteristicsFailed": "Failed to load material characteristics",
+            "updateFailed": "Failed to update material",
+            "createFailed": "Failed to create material"
+        },
+        "success": {
+            "updateSuccess": "Material updated successfully",
+            "createSuccess": "Material created successfully"
+        },
+        "dialog": {
+            "create": "Create Material",
+            "edit": "Edit Material",
+            "createDescription": "Fill in the details to create a new material.",
+            "editDescription": "Update the material details below.",
+            "name": "Name",
+            "namePlaceholder": "Material name",
+            "description": "Description",
+            "descriptionPlaceholder": "Material description",
+            "general": "General",
+            "tags": "Tags",
+            "characteristics": "Characteristics",
+            "addCharacteristics": "Add characteristics",
+            "tagsUnavailable": "No tags available",
+            "characteristicsUnavailable": "No characteristics available",
+            "noCharacteristics": "No characteristics added"
+        },
+        "history": {
+            "title": "Material History",
+            "noHistory": "No history found for this material"
+        },
+        "files": {
+            "uploadFiles": "Upload Files",
+            "newFiles": "New Files",
+            "existingFiles": "Existing Files",
+            "view": "View",
+            "download": "Download",
+            "markedForDeletion": "Marked for deletion",
+            "fileSizeError": "File {files} exceeds maximum size of {size}",
+            "totalSizeError": "Total size {size} exceeds limit of {maxSize}",
+            "loadImageFailed": "Failed to load image"
+        }
+    },
+    "MaterialHistory": {
+        "title": "History",
+        "recordFor": "Record for",
+        "detailsAndTags": "Details and Tags",
+        "characteristics": "Characteristics",
+        "name": "Name",
+        "description": "Description",
+        "createdAt": "Created At",
+        "tags": "Tags",
+        "noTags": "No tags",
+        "noCharacteristics": "No characteristics",
+        "na": "N/A",
+        "serverError": "Server error while loading history",
+        "validationError": "Validation error while loading history",
+        "noData": "No data returned",
+        "failedToLoad": "Failed to load history",
+        "hours": "Hours",
+        "from": "From",
+        "to": "To"
     }
 }

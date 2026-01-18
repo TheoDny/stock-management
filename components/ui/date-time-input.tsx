@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Label } from "@/components/ui/label"
@@ -5,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { TimePicker } from "@/components/ui/time-picker"
 import { formatDate } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface DateTimeInputProps {
     date?: Date
@@ -13,6 +16,8 @@ interface DateTimeInputProps {
 }
 
 export function DateTimeInput({ date, onDateChange, showTime = false }: DateTimeInputProps) {
+    const tCommon = useTranslations("Common")
+    
     const handleDateSelection = (selectedDate: Date | undefined) => {
         if (!selectedDate) {
             onDateChange(undefined)
@@ -37,7 +42,7 @@ export function DateTimeInput({ date, onDateChange, showTime = false }: DateTime
                             className={`w-full justify-start text-left font-normal ${!date && "text-muted-foreground"}`}
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? formatDate(date) : "Select a date"}
+                            {date ? formatDate(date) : tCommon("selectDate")}
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -53,7 +58,7 @@ export function DateTimeInput({ date, onDateChange, showTime = false }: DateTime
 
             {showTime && date && (
                 <div>
-                    <Label className="text-sm font-medium mb-1 block">Time</Label>
+                    <Label className="text-sm font-medium mb-1 block">{tCommon("time")}</Label>
                     <TimePicker
                         date={date}
                         setDate={(newDate: Date) => onDateChange(newDate)}
