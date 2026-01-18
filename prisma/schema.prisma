@@ -1,0 +1,317 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client"
+    output   = "./generated/"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model User {
+    id               String    @id @default(cuid())
+    email            String    @unique
+    name             String?
+    emailVerified    Boolean   @default(false)
+    image            String?
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @default(now()) @updatedAt
+    deletedAt        DateTime?
+    sessions         Session[]
+    accounts         Account[]
+    active           Boolean   @default(true)
+    Roles            Role[]
+    Entities         Entity[]
+    entitySelectedId String
+    EntitySelected   Entity    @relation("entitySelected", fields: [entitySelectedId], references: [id])
+    Logs             Log[]
+
+    @@index([deletedAt])
+    @@index([active])
+    @@index([email, deletedAt])
+    @@map("user")
+}
+
+model Session {
+    id        String   @id
+    expiresAt DateTime
+    token     String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    ipAddress String?
+    userAgent String?
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([expiresAt])
+    @@index([token])
+    @@map("session")
+}
+
+model Account {
+    id                    String    @id
+    accountId             String
+    providerId            String
+    userId                String
+    user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    accessToken           String?
+    refreshToken          String?
+    idToken               String?
+    accessTokenExpiresAt  DateTime?
+    refreshTokenExpiresAt DateTime?
+    scope                 String?
+    password              String?
+    createdAt             DateTime  @default(now())
+    updatedAt             DateTime  @default(now()) @updatedAt
+
+    @@index([userId])
+    @@index([providerId, accountId])
+    @@map("account")
+}
+
+model Verification {
+    id         String    @id
+    identifier String
+    value      String
+    expiresAt  DateTime
+    createdAt  DateTime? @default(now())
+    updatedAt  DateTime? @updatedAt
+
+    @@index([identifier, value])
+    @@index([expiresAt])
+    @@map("verification")
+}
+
+model TokenCreateUser {
+    id        String   @id @default(cuid())
+    email     String
+    token     String
+    expiresAt DateTime
+    createdAt DateTime @default(now())
+
+    @@unique([token])
+    @@index([email])
+    @@index([token, email])
+    @@index([expiresAt])
+    @@map("token_create_account")
+}
+
+model Permission {
+    code  String @id
+    Roles Role[]
+
+    @@map("permission")
+}
+
+model Role {
+    id          String       @id @default(cuid())
+    name        String
+    description String
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @default(now()) @updatedAt
+    deletedAt   DateTime?
+    Permissions Permission[]
+    Users       User[]
+
+    @@index([deletedAt])
+    @@index([name])
+    @@map("role")
+}
+
+model Entity {
+    id               String           @id @default(cuid())
+    name             String
+    createdAt        DateTime         @default(now())
+    updatedAt        DateTime         @default(now()) @updatedAt
+    deletedAt        DateTime?
+    Users            User[]
+    UserWithSelected User[]           @relation("entitySelected")
+    logs             Log[]
+    Tags             Tag[]
+    Characteristics  Characteristic[]
+    Materials        Material[]
+
+    @@index([deletedAt])
+    @@index([name])
+    @@map("entity")
+}
+
+enum LogType {
+    user_create
+    user_update
+    user_set_role
+    user_disable
+    user_enable
+    user_email_verified
+    user_set_entity
+
+    role_create
+    role_update
+    role_delete
+    role_set_permission
+
+    entity_update
+    entity_disable
+    entity_enable
+
+    tag_create
+    tag_update
+    tag_delete
+
+    characteristic_create
+    characteristic_update
+    characteristic_delete
+
+    material_create
+    material_update
+}
+
+model Log {
+    id           String   @id @default(cuid())
+    actionDate   DateTime @default(now())
+    actionType   LogType
+    actionDetail Json
+    User         User     @relation(fields: [userId], references: [id])
+    userId       String
+    Entity       Entity?  @relation(fields: [entityId], references: [id])
+    entityId     String?
+
+    @@index([userId])
+    @@index([entityId])
+    @@index([actionDate])
+    @@index([actionType])
+    @@index([entityId, actionDate])
+    @@map("log")
+}
+
+enum CharacteristicType {
+    checkbox
+    radio
+    select
+    multiSelect
+    boolean
+    text
+    multiText
+    textarea
+    multiTextArea
+    number
+    float
+    email
+    date
+    dateHour
+    dateRange
+    dateHourRange
+    link
+    file
+}
+
+model Tag {
+    id        String     @id @default(cuid())
+    name      String
+    fontColor String
+    color     String
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @default(now()) @updatedAt
+    Materials Material[]
+    entityId  String
+    Entity    Entity     @relation(fields: [entityId], references: [id])
+
+    @@index([entityId])
+    @@index([name])
+    @@map("tag")
+}
+
+model Characteristic {
+    id                       String                    @id @default(cuid())
+    name                     String
+    description              String
+    options                  Json?
+    type                     CharacteristicType
+    units                    String?
+    createdAt                DateTime                  @default(now())
+    updatedAt                DateTime                  @default(now()) @updatedAt
+    deletedAt                DateTime?
+    Entity                   Entity                    @relation(fields: [entityId], references: [id])
+    entityId                 String
+    Materials                Material[]
+    Material_Characteristics Material_Characteristic[]
+
+    @@index([entityId])
+    @@index([deletedAt])
+    @@index([entityId, deletedAt])
+    @@index([name])
+    @@map("characteristic")
+}
+
+model Material {
+    id                            String                    @id @default(cuid())
+    name                          String
+    description                   String
+    createdAt                     DateTime                  @default(now())
+    updatedAt                     DateTime                  @default(now()) @updatedAt
+    Tags                          Tag[]
+    Characteristics               Characteristic[]
+    order_Material_Characteristic String[]
+    deletedAt                     DateTime?
+    Entity                        Entity                    @relation(fields: [entityId], references: [id])
+    entityId                      String
+    Material_Characteristics     Material_Characteristic[]
+    Material_History             Material_History[]
+
+    @@index([entityId])
+    @@index([deletedAt])
+    @@index([entityId, deletedAt])
+    @@index([name])
+    @@map("material")
+}
+
+model Material_Characteristic {
+    id               String         @id @default(cuid())
+    materialId       String
+    Material         Material       @relation(fields: [materialId], references: [id], onDelete: Cascade)
+    characteristicId String
+    Characteristic   Characteristic @relation(fields: [characteristicId], references: [id])
+    value            Json?
+    File             FileDb[]
+
+    @@index([materialId])
+    @@index([characteristicId])
+    @@index([materialId, characteristicId])
+    @@map("material_characteristic")
+}
+
+model Material_History {
+    id              String   @id @default(cuid())
+    materialId      String
+    name            String
+    description     String
+    Material        Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+    Characteristics Json     @default("[]")
+    Tags            Json     @default("[]")
+    createdAt       DateTime @default(now())
+
+    @@index([materialId])
+    @@index([createdAt])
+    @@index([materialId, createdAt])
+    @@map("material_history")
+}
+
+model FileDb {
+    id                       String                  @id @default(cuid())
+    type                     String
+    name                     String
+    path                     String
+    createdAt                DateTime                @default(now())
+    Material_Characteristic  Material_Characteristic? @relation(fields: [materialCharacteristicId], references: [id], onDelete: Cascade)
+    materialCharacteristicId String?
+
+    @@index([materialCharacteristicId])
+    @@index([createdAt])
+    @@map("filedb")
+}
