@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Search } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { getCharacteristicsAction } from "@/actions/characteritic.action"
@@ -19,34 +19,41 @@ type SortDirection = "asc" | "desc"
 
 export function CharacteristicManagement() {
     const t = useTranslations("Configuration.characteristics")
+    const tCommon = useTranslations("Common")
     const [characteristics, setCharacteristics] = useState<CharacteristicAndCountMaterial[]>([])
-    const [filteredCharacteristics, setFilteredCharacteristics] = useState<CharacteristicAndCountMaterial[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingCharacteristic, setEditingCharacteristic] = useState<CharacteristicAndCountMaterial | null>(null)
     const [sortField, setSortField] = useState<SortField>("name")
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
 
-    const loadCharacteristics = async () => {
-        try {
-            const characteristicsData = await getCharacteristicsAction()
-            setCharacteristics(characteristicsData)
-        } catch (error) {
-            console.error(error)
-            toast.error(t("errors.loadFailed"))
+    // Load characteristics on mount
+    useEffect(() => {
+        let isMounted = true
+
+        const loadCharacteristics = async () => {
+            try {
+                const characteristicsData = await getCharacteristicsAction()
+                if (isMounted) {
+                    setCharacteristics(characteristicsData)
+                }
+            } catch (error) {
+                console.error(error)
+                if (isMounted) {
+                    toast.error(t("errors.loadFailed"))
+                }
+            }
         }
-    }
 
-    useEffect(() => {
         loadCharacteristics()
-    }, [])
 
-    useEffect(() => {
-        filterCharacteristics()
-    }, [characteristics, searchQuery, sortField, sortDirection])
+        return () => {
+            isMounted = false
+        }
+    }, [t])
 
-
-    const filterCharacteristics = () => {
+    // Filter and sort characteristics using useMemo
+    const filteredCharacteristics = useMemo(() => {
         let filtered = [...characteristics]
 
         // Apply search filter
@@ -75,8 +82,8 @@ export function CharacteristicManagement() {
             return sortDirection === "asc" ? comparison : -comparison
         })
 
-        setFilteredCharacteristics(filtered)
-    }
+        return filtered
+    }, [characteristics, searchQuery, sortField, sortDirection])
 
     const handleCreateCharacteristic = () => {
         setEditingCharacteristic(null)
@@ -88,10 +95,16 @@ export function CharacteristicManagement() {
         setIsDialogOpen(true)
     }
 
-    const handleCharacteristicDialogClose = (refreshData: boolean) => {
+    const handleCharacteristicDialogClose = async (refreshData: boolean) => {
         setIsDialogOpen(false)
         if (refreshData) {
-            loadCharacteristics()
+            try {
+                const characteristicsData = await getCharacteristicsAction()
+                setCharacteristics(characteristicsData)
+            } catch (error) {
+                console.error(error)
+                toast.error(t("errors.loadFailed"))
+            }
         }
     }
 

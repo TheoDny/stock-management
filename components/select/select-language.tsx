@@ -10,7 +10,8 @@ import {
 import type { VariantProps } from "class-variance-authority"
 import { Globe } from "lucide-react"
 import { useLocale } from "next-intl"
-import * as React from "react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface LanguageSelectorProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -32,17 +33,27 @@ export function LanguageSelector({
     ...props
 }: LanguageSelectorProps) {
     const currentLocale = useLocale()
+    const router = useRouter()
+    const [localeToSet, setLocaleToSet] = useState<string | null>(null)
 
     // Get current language display name
     const currentLanguage = languages.find((lang) => lang.code === currentLocale)?.name || currentLocale
 
+    // Set cookie and navigate when locale changes
+    useEffect(() => {
+        if (localeToSet) {
+            // Set the cookie
+            if (typeof document !== "undefined") {
+                document.cookie = `NEXT_LOCALE=${localeToSet}; path=/`
+            }
+            // Reload the page to apply the new language
+            router.push(window.location.pathname)
+        }
+    }, [localeToSet, router])
+
     // Change language handler
     const changeLanguage = (locale: string) => {
-        // Set the cookie
-        document.cookie = `NEXT_LOCALE=${locale}; path=/`
-
-        // Reload the page to apply the new language
-        window.location.href = window.location.pathname
+        setLocaleToSet(locale)
     }
 
     return (

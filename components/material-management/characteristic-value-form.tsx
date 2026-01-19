@@ -146,26 +146,30 @@ export function CharacteristicValueForm({
 
     // Initialize values based on characteristic type and existing value
     useEffect(() => {
-        if (characteristic.type === "date" || characteristic.type === "dateHour") {
-            // Handle date type initialization
-            if (value && typeof value === "object" && "date" in value) {
-                setDates({ date: new Date(value.date) })
-            } else if (value && typeof value === "string") {
-                try {
-                    setDates({ date: parseISO(value) })
-                } catch (e) {
-                    setDates({})
+        const initBaseValues = () => {
+            if (characteristic.type === "date" || characteristic.type === "dateHour") {
+                // Handle date type initialization
+                if (value && typeof value === "object" && "date" in value) {
+                    setDates({ date: new Date(value.date) })
+                } else if (value && typeof value === "string") {
+                    try {
+                        setDates({ date: parseISO(value) })
+                    } catch (e) {
+                        setDates({})
+                    }
+                }
+            } else if (characteristic.type === "dateRange" || characteristic.type === "dateHourRange") {
+                // Handle date range type initialization
+                if (value && typeof value === "object" && "from" in value && "to" in value) {
+                    setDates({
+                        from: new Date(value.from),
+                        to: new Date(value.to),
+                    })
                 }
             }
-        } else if (characteristic.type === "dateRange" || characteristic.type === "dateHourRange") {
-            // Handle date range type initialization
-            if (value && typeof value === "object" && "from" in value && "to" in value) {
-                setDates({
-                    from: new Date(value.from),
-                    to: new Date(value.to),
-                })
-            }
         }
+        
+        initBaseValues()
     }, [characteristic.type, value])
 
     // Create preview URLs for uploaded files

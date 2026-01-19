@@ -3,7 +3,7 @@
 import { FileEdit, History, Pencil, Plus, Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { getMaterialsAction } from "@/actions/material.actions"
@@ -27,7 +27,6 @@ type SortDirection = "asc" | "desc"
 export function MaterialManagement() {
     const router = useRouter()
     const [materials, setMaterials] = useState<MaterialWithTag[]>([])
-    const [filteredMaterials, setFilteredMaterials] = useState<MaterialWithTag[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingMaterial, setEditingMaterial] = useState<MaterialWithTag | null>(null)
@@ -36,26 +35,33 @@ export function MaterialManagement() {
     const t = useTranslations("Materials")
     const tCommon = useTranslations("Common")
 
-    const loadMaterials = async () => {
-        try {
-            const materialsData = await getMaterialsAction()
-            setMaterials(materialsData)
-        } catch (error) {
-            console.error(error)
-            toast.error(t("errors.loadFailed"))
+    // Load materials on mount
+    useEffect(() => {
+        let isMounted = true
+
+        const loadMaterials = async () => {
+            try {
+                const materialsData = await getMaterialsAction()
+                if (isMounted) {
+                    setMaterials(materialsData)
+                }
+            } catch (error) {
+                console.error(error)
+                if (isMounted) {
+                    toast.error(t("errors.loadFailed"))
+                }
+            }
         }
-    }
-    
-    useEffect(() => {
+
         loadMaterials()
-    }, [])
 
-    useEffect(() => {
-        filterMaterials()
-    }, [materials, searchQuery, sortField, sortDirection])
+        return () => {
+            isMounted = false
+        }
+    }, [t])
 
-
-    const filterMaterials = () => {
+    // Filter and sort materials using useMemo
+    const filteredMaterials = useMemo(() => {
         let filtered = [...materials]
 
         // Apply search filter
@@ -81,8 +87,8 @@ export function MaterialManagement() {
             return sortDirection === "asc" ? comparison : -comparison
         })
 
-        setFilteredMaterials(filtered)
-    }
+        return filtered
+    }, [materials, searchQuery, sortField, sortDirection])
 
     const handleCreateMaterial = () => {
         setEditingMaterial(null)
@@ -98,11 +104,17 @@ export function MaterialManagement() {
         router.push(`/materials/history/${materialId}`)
     }
 
-    const handleMaterialDialogClose = (refreshData: boolean) => {
+    const handleMaterialDialogClose = async (refreshData: boolean) => {
         setIsDialogOpen(false)
 
         if (refreshData) {
-            loadMaterials()
+            try {
+                const materialsData = await getMaterialsAction()
+                setMaterials(materialsData)
+            } catch (error) {
+                console.error(error)
+                toast.error(t("errors.loadFailed"))
+            }
         }
     }
 

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CircleAlert, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -38,6 +39,7 @@ const createSignUpSchema = (t: (key: string) => string) =>
 type SignUpFormValues = z.infer<ReturnType<typeof createSignUpSchema>>
 
 export function SignUp({ token, name, email }: SignUpProps) {
+    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const tSignUp = useTranslations("SignUp")
@@ -78,7 +80,7 @@ export function SignUp({ token, name, email }: SignUpProps) {
         }
 
         setLoading(false)
-        window.location.href = "/sign-in"
+        router.push("/sign-in")
     }
 
     return (

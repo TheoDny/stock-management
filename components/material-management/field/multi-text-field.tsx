@@ -30,11 +30,15 @@ export function MultiTextField({
 
     // Initialize from value prop
     useEffect(() => {
-        if (value && value.multiText && Array.isArray(value.multiText)) {
-            setItems(value.multiText)
-        } else {
-            setItems([{ title: "", text: "" }])
+        const initItems = () => {
+            if (value && value.multiText && Array.isArray(value.multiText)) {
+                setItems(value.multiText)
+            } else {
+                setItems([{ title: "", text: "" }])
+            }
         }
+
+        initItems()
     }, [value])
 
     const handleItemChange = (index: number, field: "title" | "text", newValue: string) => {

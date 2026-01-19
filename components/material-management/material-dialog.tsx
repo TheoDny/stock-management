@@ -87,6 +87,59 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
 
     useEffect(() => {
         if (open) {
+            const loadCharacteristics = async () => {
+            try {
+                const characteristicsData = await getCharacteristicsAction()
+                setCharacteristics(characteristicsData)
+            } catch (error) {
+                console.error(error)
+                toast.error(tMaterials("errors.loadCharacteristicsFailed"))
+            }
+            }
+
+            const loadTags = async () => {
+                try {
+                    const tagsData = await getTagsAction()
+                    setTags(tagsData)
+                } catch (error) {
+                    console.error(error)
+                    toast.error(tMaterials("errors.loadTagsFailed"))
+                }
+            }
+
+            const loadMaterialCharacteristics = async (materialId: string) => {
+                try {
+                    const values = await getMaterialCharacteristicsAction(materialId)
+
+                    // Process file relationships into the proper format for the form
+                    const processedValues: MaterialCharacteristicClient[] = values.map((cv) => {
+                        if (isCharacteristicValueFile(cv)) {
+                            return {
+                                ...cv,
+                                value: {
+                                    fileToAdd: [],
+                                    fileToDelete: [],
+                                    file: cv.File
+                                        ? cv.File.map((file) => ({
+                                            id: file.id,
+                                            name: file.name,
+                                            type: file.type,
+                                        }))
+                                        : [],
+                                },
+                            }
+                        }
+
+                        return cv
+                    })
+
+                    setCharacteristicValues(processedValues)
+                } catch (error) {
+                    console.error(error)
+                    toast.error(tMaterials("errors.loadMaterialCharacteristicsFailed"))
+                }
+            }
+
             loadTags()
             loadCharacteristics()
 
@@ -109,7 +162,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                 setCharacteristicValues([])
             }
         }
-    }, [open, material, form])
+    }, [open, material, form, tMaterials])
 
     // Update the order whenever characteristic values change
     useEffect(() => {
@@ -123,60 +176,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         const updatedOrder = currentOrder.filter((id) => characteristicIds.includes(id)).concat(newIds)
 
         form.setValue("orderCharacteristics", updatedOrder)
-    }, [characteristicValues])
-
-    const loadTags = async () => {
-        try {
-            const tagsData = await getTagsAction()
-            setTags(tagsData)
-        } catch (error) {
-            console.error(error)
-            toast.error(tMaterials("errors.loadTagsFailed"))
-        }
-    }
-
-    const loadCharacteristics = async () => {
-        try {
-            const characteristicsData = await getCharacteristicsAction()
-            setCharacteristics(characteristicsData)
-        } catch (error) {
-            console.error(error)
-            toast.error(tMaterials("errors.loadCharacteristicsFailed"))
-        }
-    }
-
-    const loadMaterialCharacteristics = async (materialId: string) => {
-        try {
-            const values = await getMaterialCharacteristicsAction(materialId)
-
-            // Process file relationships into the proper format for the form
-            const processedValues: MaterialCharacteristicClient[] = values.map((cv) => {
-                if (isCharacteristicValueFile(cv)) {
-                    return {
-                        ...cv,
-                        value: {
-                            fileToAdd: [],
-                            fileToDelete: [],
-                            file: cv.File
-                                ? cv.File.map((file) => ({
-                                      id: file.id,
-                                      name: file.name,
-                                      type: file.type,
-                                  }))
-                                : [],
-                        },
-                    }
-                }
-
-                return cv
-            })
-
-            setCharacteristicValues(processedValues)
-        } catch (error) {
-            console.error(error)
-            toast.error(tMaterials("errors.loadMaterialCharacteristicsFailed"))
-        }
-    }
+    }, [characteristicValues, form])
 
     const handleClose = (refreshData: boolean = false) => {
         form.reset()

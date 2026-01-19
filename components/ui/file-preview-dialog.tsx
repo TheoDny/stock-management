@@ -20,7 +20,6 @@ export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileT
     const tCommon = useTranslations("Common")
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
     const [textContent, setTextContent] = useState<string | null>(null)
 
     // Get file extension from filename
@@ -32,35 +31,39 @@ export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileT
     const isTextFile = ["txt", "csv", "json", "md", "xml", "html", "css", "js"].includes(fileExtension)
 
     useEffect(() => {
-        if (!open) return
-
-        // Reset state when dialog opens
-        setLoading(true)
-        setError(null)
-        setTextContent(null)
-
-        // Load text content for text files
-        if (isTextFile) {
-            fetch(fileUrl)
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(`Failed to load file: ${response.status} ${response.statusText}`)
-                    }
-                    return response.text()
-                })
-                .then((text) => {
-                    setTextContent(text)
-                    setLoading(false)
-                })
-                .catch((err) => {
-                    console.error("Error loading text file:", err)
-                    setError(err.message)
-                    setLoading(false)
-                })
-        } else {
-            // For non-text files, just set loading to false
-            setLoading(false)
+        const loadFile = async () => {
+            if (!open) return
+    
+            // Reset state when dialog opens
+            setLoading(true)
+            setError(null)
+            setTextContent(null)
+    
+            // Load text content for text files
+            if (isTextFile) {
+                fetch(fileUrl)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to load file: ${response.status} ${response.statusText}`)
+                        }
+                        return response.text()
+                    })
+                    .then((text) => {
+                        setTextContent(text)
+                        setLoading(false)
+                    })
+                    .catch((err) => {
+                        console.error("Error loading text file:", err)
+                        setError(err.message)
+                        setLoading(false)
+                    })
+            } else {
+                // For non-text files, just set loading to false
+                setLoading(false)
+            }
         }
+        
+        loadFile()
     }, [open, fileUrl, isTextFile])
 
     const renderPreview = () => {

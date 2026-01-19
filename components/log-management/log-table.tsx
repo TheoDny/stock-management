@@ -9,20 +9,20 @@ import { LogType } from "@/prisma/generated/enums"
 import { LogEntry } from "@/types/log.type"
 import { format, subDays } from "date-fns"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { DateRange } from "react-day-picker"
 import { Skeleton } from "../ui/skeleton"
 
 export function LogTable({ logs }: { logs: LogEntry[] }) {
     const t = useTranslations("Logs")
     const tCommon = useTranslations("Common")
-    const [filterLoading, setFilterLoading] = useState(true)
-    const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
+    const [loadedLogs, setLoadedLogs] = useState<LogEntry[]>([])
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: subDays(new Date(), 7),
         to: new Date(),
     })
     const [isLoadingData, setIsLoadingData] = useState(false)
+    const [hasLoadedFromDateRange, setHasLoadedFromDateRange] = useState(false)
 
     const [filters, setFilters] = useState<{
         logType: string[]
@@ -35,6 +35,11 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         entity: [],
         role: [],
     })
+
+    // Use loaded logs if available, otherwise use initial logs
+    const allLogs = useMemo(() => {
+        return hasLoadedFromDateRange ? loadedLogs : logs
+    }, [logs, loadedLogs, hasLoadedFromDateRange])
 
     // Définition des colonnes pour la table
     const columns: Column<LogEntry>[] = [
@@ -60,51 +65,50 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         },
     ]
 
-    // Charger les logs avec les dates sélectionnées
-    const loadLogs = async () => {
-        if (!dateRange?.from) return
-
-        setIsLoadingData(true)
-        try {
-            let result = await getLogsAction({
-                startDate: dateRange.from.toISOString(),
-                endDate: (dateRange.to || dateRange.from).toISOString(),
-            })
-
-            if (result?.serverError) {
-                console.error("Server error:", result.serverError)
-                result.data = []
-            } else if (result?.validationErrors) {
-                console.error("Validation errors:", result.validationErrors)
-                result.data = []
-            } else if (!result?.data) {
-                console.error("No data returned from server")
-                result = { data: [] }
-            }
-
-            setFilteredLogs(result.data as LogEntry[])
-            setIsLoadingData(false)
-            setFilterLoading(false)
-        } catch (error) {
-            console.error("Error loading logs:", error)
-            setIsLoadingData(false)
-        }
-    }
-
     // Charger les logs au changement de dates
     useEffect(() => {
-        if (dateRange?.from) {
-            loadLogs()
+        let isMounted = true
+
+        const loadLogs = async () => {
+            if (!dateRange?.from) return
+
+            setIsLoadingData(true)
+            try {
+                let result = await getLogsAction({
+                    startDate: dateRange.from.toISOString(),
+                    endDate: (dateRange.to || dateRange.from).toISOString(),
+                })
+
+                if (result?.serverError) {
+                    console.error("Server error:", result.serverError)
+                    result.data = []
+                } else if (result?.validationErrors) {
+                    console.error("Validation errors:", result.validationErrors)
+                    result.data = []
+                } else if (!result?.data) {
+                    console.error("No data returned from server")
+                    result = { data: [] }
+                }
+
+                if (isMounted) {
+                    setLoadedLogs(result.data as LogEntry[])
+                    setHasLoadedFromDateRange(true)
+                    setIsLoadingData(false)
+                }
+            } catch (error) {
+                console.error("Error loading logs:", error)
+                if (isMounted) {
+                    setIsLoadingData(false)
+                }
+            }
+        }
+
+        loadLogs()
+
+        return () => {
+            isMounted = false
         }
     }, [dateRange])
-
-    // Charger les logs initiaux
-    useEffect(() => {
-        if (logs.length > 0) {
-            setFilteredLogs(logs)
-            setFilterLoading(false)
-        }
-    }, [logs])
 
     // Get log types for filter
     const logTypes = Object.values(LogType).map((type) => ({
@@ -132,11 +136,9 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         }))
     }
 
-    // Apply filters when they change
-    useEffect(() => {
-        setFilterLoading(true)
-
-        let result = [...filteredLogs]
+    // Apply filters using useMemo
+    const filteredLogs = useMemo(() => {
+        let result = [...allLogs]
 
         if (filters.logType.length > 0) {
             result = result.filter((log) => filters.logType.includes(log.type))
@@ -156,9 +158,8 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
             )
         }
 
-        setFilteredLogs(result)
-        setFilterLoading(false)
-    }, [filters])
+        return result
+    }, [allLogs, filters])
 
     // Handle filter change
     const handleFilterChange = (key: string, value: string | string[]) => {
@@ -244,7 +245,34 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                 <div className="flex items-end">
                     <Button
                         variant="outline"
-                        onClick={loadLogs}
+                        onClick={async () => {
+                            if (!dateRange?.from) return
+                            setIsLoadingData(true)
+                            try {
+                                let result = await getLogsAction({
+                                    startDate: dateRange.from.toISOString(),
+                                    endDate: (dateRange.to || dateRange.from).toISOString(),
+                                })
+
+                                if (result?.serverError) {
+                                    console.error("Server error:", result.serverError)
+                                    result.data = []
+                                } else if (result?.validationErrors) {
+                                    console.error("Validation errors:", result.validationErrors)
+                                    result.data = []
+                                } else if (!result?.data) {
+                                    console.error("No data returned from server")
+                                    result = { data: [] }
+                                }
+
+                                setLoadedLogs(result.data as LogEntry[])
+                                setHasLoadedFromDateRange(true)
+                                setIsLoadingData(false)
+                            } catch (error) {
+                                console.error("Error loading logs:", error)
+                                setIsLoadingData(false)
+                            }
+                        }}
                         className="w-full"
                         disabled={isLoadingData}
                     >
@@ -306,7 +334,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                     />
                 </div>
             </div>
-            {filterLoading || isLoadingData ? (
+            {isLoadingData ? (
                 <div>
                     <Skeleton className="h-[35px] w-full mb-0.5" />
                     <Skeleton className="h-[395px] w-full mb-0.5" />

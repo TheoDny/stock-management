@@ -39,23 +39,27 @@ export function DataTable<T>({
 
     // Mettre à jour la pagination quand les données ou les paramètres de pagination changent
     useEffect(() => {
-        if (data.length === 0) {
-            setPaginatedData([])
-            setTotalPages(1)
-            return
+        const updatePagination = () => {
+            if (data.length === 0) {
+                setPaginatedData([])
+                setTotalPages(1)
+                return
+            }
+    
+            const totalPages = Math.ceil(data.length / itemsPerPage)
+            setTotalPages(totalPages)
+    
+            // Ajuster la page courante si nécessaire
+            if (currentPage > totalPages) {
+                setCurrentPage(totalPages)
+            }
+    
+            const startIndex = (currentPage - 1) * itemsPerPage
+            const endIndex = Math.min(startIndex + itemsPerPage, data.length)
+            setPaginatedData(data.slice(startIndex, endIndex))
         }
 
-        const totalPages = Math.ceil(data.length / itemsPerPage)
-        setTotalPages(totalPages)
-
-        // Ajuster la page courante si nécessaire
-        if (currentPage > totalPages) {
-            setCurrentPage(totalPages)
-        }
-
-        const startIndex = (currentPage - 1) * itemsPerPage
-        const endIndex = Math.min(startIndex + itemsPerPage, data.length)
-        setPaginatedData(data.slice(startIndex, endIndex))
+        updatePagination()
     }, [data, currentPage, itemsPerPage])
 
     // Navigation de pagination

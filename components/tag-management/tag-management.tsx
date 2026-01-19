@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Search } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 import { getTagsAction } from "@/actions/tag.action"
@@ -19,33 +19,39 @@ type SortDirection = "asc" | "desc"
 export function TagManagement() {
     const t = useTranslations("Configuration.tags")
     const [tags, setTags] = useState<TagAndCountMaterial[]>([])
-    const [filteredTags, setFilteredTags] = useState<TagAndCountMaterial[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingTag, setEditingTag] = useState<TagAndCountMaterial | null>(null)
     const [sortField, setSortField] = useState<SortField>("name")
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
 
-    const loadTags = async () => {
-        try {
-            const tagsData = await getTagsAction()
-            setTags(tagsData)
-        } catch (error) {
-            console.error(error)
-            toast.error(t("errors.loadFailed"))
+    // Load tags on mount
+    useEffect(() => {
+        let isMounted = true
+
+        const loadTags = async () => {
+            try {
+                const tagsData = await getTagsAction()
+                if (isMounted) {
+                    setTags(tagsData)
+                }
+            } catch (error) {
+                console.error(error)
+                if (isMounted) {
+                    toast.error(t("errors.loadFailed"))
+                }
+            }
         }
-    }
 
-    useEffect(() => {
         loadTags()
-    }, [])
 
-    useEffect(() => {
-        filterTags()
-    }, [tags, searchQuery, sortField, sortDirection])
+        return () => {
+            isMounted = false
+        }
+    }, [t])
 
-
-    const filterTags = () => {
+    // Filter and sort tags using useMemo
+    const filteredTags = useMemo(() => {
         let filtered = [...tags]
 
         // Apply search filter
@@ -71,8 +77,8 @@ export function TagManagement() {
             return sortDirection === "asc" ? comparison : -comparison
         })
 
-        setFilteredTags(filtered)
-    }
+        return filtered
+    }, [tags, searchQuery, sortField, sortDirection])
 
     const handleCreateTag = () => {
         setEditingTag(null)
@@ -84,11 +90,17 @@ export function TagManagement() {
         setIsDialogOpen(true)
     }
 
-    const handleTagDialogClose = (refreshData: boolean) => {
+    const handleTagDialogClose = async (refreshData: boolean) => {
         setIsDialogOpen(false)
 
         if (refreshData) {
-            loadTags()
+            try {
+                const tagsData = await getTagsAction()
+                setTags(tagsData)
+            } catch (error) {
+                console.error(error)
+                toast.error(t("errors.loadFailed"))
+            }
         }
     }
 
