@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { InputConceal } from "@/components/ui/input-conceal"
 import { Label } from "@/components/ui/label"
 import { signIn } from "@/lib/auth-client"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,7 +13,6 @@ import Link from "next/link"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { InputConceal } from "../ui/input-conceal"
 
 const signInSchema = z.object({
     email: z.email("Please enter a valid email"),

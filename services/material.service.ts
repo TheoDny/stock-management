@@ -144,34 +144,37 @@ export async function createMaterial(
                     Array.isArray(cv.value.fileToAdd)
                 ) {
                     isFile = true
-
-                    // Process each file in the array
-                    for (const file of cv.value.fileToAdd) {
-                        if (file instanceof File) {
-                            // Save file using storage service
-                            const savedFile = await saveFile(
-                                file,
-                                `materials/${material.id}/characteristics/${cv.characteristicId}`,
-                                materialImageMaxWidth,
-                            )
-
-                            fileDbIds.push(savedFile.id)
+                    if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
+                        // Process each file in the array
+                        for (const file of cv.value.fileToAdd) {
+                            if (file instanceof File) {
+                                // Save file using storage service
+                                const savedFile = await saveFile(
+                                    file,
+                                    `materials/${material.id}/characteristics/${cv.characteristicId}`,
+                                    materialImageMaxWidth,
+                                )
+    
+                                fileDbIds.push(savedFile.id)
+                            }
                         }
                     }
                 }
 
                 // Create the characteristic value
                 if (isFile) {
-                    await prisma.material_Characteristic.create({
-                        data: {
-                            materialId: material.id,
-                            characteristicId: cv.characteristicId,
-                            value: undefined,
-                            File: {
-                                connect: fileDbIds.map((id) => ({ id })),
+                    if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
+                        await prisma.material_Characteristic.create({
+                            data: {
+                                materialId: material.id,
+                                characteristicId: cv.characteristicId,
+                                value: undefined,
+                                File: {
+                                    connect: fileDbIds.map((id) => ({ id })),
+                                },
                             },
-                        },
-                    })
+                        })
+                    }
                 } else {
                     await prisma.material_Characteristic.create({
                         data: {
@@ -307,34 +310,35 @@ export async function updateMaterial(
                     "fileToDelete" in cv.value
                 ) {
                     isFile = true
-
-                    // Find existing characteristic to get current files
-                    const existingCharacteristic = currentMaterial.Material_Characteristics.find(
-                        (mc) => mc.characteristicId === cv.characteristicId,
-                    )
-
-                    // Keep files that shouldn't be deleted
-                    if (existingCharacteristic && existingCharacteristic.File.length > 0) {
-                        const filesToDelete: string[] = cv.value.fileToDelete
-                        const filesToKeep = existingCharacteristic.File.filter(
-                            (file) => !filesToDelete.includes(file.id),
+                    if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
+                        // Find existing characteristic to get current files
+                        const existingCharacteristic = currentMaterial.Material_Characteristics.find(
+                            (mc) => mc.characteristicId === cv.characteristicId,
                         )
 
-                        // Add IDs of files to keep
-                        fileDbIds.push(...filesToKeep.map((f) => f.id))
-                    }
-
-                    // Process new files to add
-                    for (const file of cv.value.fileToAdd) {
-                        if (file instanceof File) {
-                            // Save file using storage service
-                            const savedFile = await saveFile(
-                                file,
-                                `materials/${material.id}/characteristics/${cv.characteristicId}`,
-                                materialImageMaxWidth,
+                        // Keep files that shouldn't be deleted
+                        if (existingCharacteristic && existingCharacteristic.File.length > 0) {
+                            const filesToDelete: string[] = cv.value.fileToDelete
+                            const filesToKeep = existingCharacteristic.File.filter(
+                                (file) => !filesToDelete.includes(file.id),
                             )
 
-                            fileDbIds.push(savedFile.id)
+                            // Add IDs of files to keep
+                            fileDbIds.push(...filesToKeep.map((f) => f.id))
+                        }
+
+                        // Process new files to add
+                        for (const file of cv.value.fileToAdd) {
+                            if (file instanceof File) {
+                                // Save file using storage service
+                                const savedFile = await saveFile(
+                                    file,
+                                    `materials/${material.id}/characteristics/${cv.characteristicId}`,
+                                    materialImageMaxWidth,
+                                )
+
+                                fileDbIds.push(savedFile.id)
+                            }
                         }
                     }
                 }
@@ -351,16 +355,18 @@ export async function updateMaterial(
 
                 // Create the characteristic value with updated data
                 if (isFile && fileDbIds.length > 0) {
-                    await prisma.material_Characteristic.create({
-                        data: {
-                            materialId: id,
-                            characteristicId: cv.characteristicId,
-                            value: undefined,
-                            File: {
-                                connect: fileDbIds.map((id) => ({ id })),
+                    if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
+                        await prisma.material_Characteristic.create({
+                            data: {
+                                materialId: id,
+                                characteristicId: cv.characteristicId,
+                                value: undefined,
+                                File: {
+                                    connect: fileDbIds.map((id) => ({ id })),
+                                },
                             },
-                        },
-                    })
+                        })
+                    }
                 } else {
                     await prisma.material_Characteristic.create({
                         data: {

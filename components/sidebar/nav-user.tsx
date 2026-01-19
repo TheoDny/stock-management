@@ -14,6 +14,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Separator } from "@/components/ui/separator"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
 import { signOut } from "@/lib/auth-client"
 import { EntityModel as Entity } from "@/prisma/generated/models/Entity"
@@ -21,7 +22,6 @@ import { Building, ChevronsUpDown, LogOut, SquareUserRound } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { toast } from "sonner"
-import { Separator } from "../ui/separator"
 
 export function NavUser({
     user,

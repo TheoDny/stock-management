@@ -1,6 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import "dotenv/config"
 import { Check, GripVertical, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -188,7 +189,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         setIsSubmitting(true)
         try {
             if (isEditing && material) {
-                const processedCharacteristicValues = characteristicValues.map((cv) => {
+                let processedCharacteristicValues = characteristicValues.map((cv) => {
                     // If it's a file characteristic, ensure it's in the proper format for saving
                     if (isCharacteristicValueFileClient(cv)) {
                         // For editing, need fileToAdd and fileToDelete format
@@ -243,6 +244,16 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                         value: cv.value,
                     }
                 })
+                if (process.env.NEXT_PUBLIC_STORAGE_ENABLED !== "true") {
+                    processedCharacteristicValues = processedCharacteristicValues.filter((cv) => {
+                        // Filter out file characteristics when storage is disabled
+                        if (cv.value && typeof cv.value === "object" && ("fileToAdd" in cv.value)) {
+                            return false
+                        }
+                        return true
+                    })
+                    values.orderCharacteristics = values.orderCharacteristics.filter((id) => processedCharacteristicValues.some(cv => cv.characteristicId === id))
+                }
                 // Update existing material
                 const result = await updateMaterialAction({
                     id: material.id,
@@ -266,7 +277,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
 
                 toast.success(tMaterials("success.updateSuccess"))
             } else {
-                const processedCharacteristicValues = characteristicValues.map((cv) => {
+                let processedCharacteristicValues = characteristicValues.map((cv) => {
                     // If it's a file characteristic, ensure it's in the proper format for saving
                     if (isCharacteristicValueFileClient(cv)) {
                         // For creating, we only need fileToAdd
@@ -320,6 +331,17 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                         value: cv.value,
                     }
                 })
+
+                if (process.env.NEXT_PUBLIC_STORAGE_ENABLED !== "true") {
+                    processedCharacteristicValues = processedCharacteristicValues.filter((cv) => {
+                        // Filter out file characteristics when storage is disabled
+                        if (cv.value && typeof cv.value === "object" && "fileToAdd" in cv.value) {
+                            return false
+                        }
+                        return true
+                    })
+                    values.orderCharacteristics = values.orderCharacteristics.filter((id) => processedCharacteristicValues.some(cv => cv.characteristicId === id))
+                }
 
                 // Create new material
                 const result = await createMaterialAction({
@@ -457,6 +479,8 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const handleDragEnd = () => {
         setDraggedItemIndex(null)
     }
+
+    const availableCharacteristics = getAvailableCharacteristics()
 
     return (
         <Dialog
@@ -601,7 +625,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                     />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {getAvailableCharacteristics().map((characteristic) => (
+                                                    {availableCharacteristics.map((characteristic) => (
                                                         <SelectItem
                                                             key={characteristic.id}
                                                             value={characteristic.id}
@@ -609,7 +633,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                             {characteristic.name}
                                                         </SelectItem>
                                                     ))}
-                                                    {getAvailableCharacteristics().length === 0 && (
+                                                    {availableCharacteristics.length === 0 && (
                                                         <SelectItem
                                                             value="none"
                                                             disabled

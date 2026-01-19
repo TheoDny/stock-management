@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Column, DataTable } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TagAndCountMaterial } from "@/types/tag.type"
 import { TagDialog } from "./tag-dialog"
 
@@ -153,13 +154,21 @@ export function TagManagement() {
             key: "actions",
             header: t("columns.actions"),
             cell: (tag) => (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleEditTag(tag)}
-                >
-                    <Pencil className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditTag(tag)}>
+                                        <Pencil />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("dialog.edit")}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
             ),
         },
     ]

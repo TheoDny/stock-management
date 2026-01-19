@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 import { Column, DataTable } from "@/components/ui/data-table"
 import { DatePickerRange } from "@/components/ui/date-picker-range"
+import { Skeleton } from "@/components/ui/skeleton"
 import { LogType } from "@/prisma/generated/enums"
 import { LogEntry } from "@/types/log.type"
 import { format, subDays } from "date-fns"
 import { useTranslations } from "next-intl"
 import { useEffect, useMemo, useState } from "react"
 import { DateRange } from "react-day-picker"
-import { Skeleton } from "../ui/skeleton"
 
 export function LogTable({ logs }: { logs: LogEntry[] }) {
     const t = useTranslations("Logs")

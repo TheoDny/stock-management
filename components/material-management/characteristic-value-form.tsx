@@ -1,5 +1,6 @@
 "use client"
 
+import { Alert, AlertTitle } from "@/components/ui/alert"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { DateTimeInput } from "@/components/ui/date-time-input"
@@ -12,6 +13,7 @@ import { cn, formatDate } from "@/lib/utils"
 import { Characteristic } from "@/prisma/generated/client"
 import { parseISO } from "date-fns"
 import {
+    AlertCircleIcon,
     CalendarIcon,
     Download,
     Eye,
@@ -126,7 +128,7 @@ export function CharacteristicValueForm({
     onChange,
     isEditing = false,
 }: CharacteristicValueFormProps) {
-    const tMat = useTranslations("Materials.files")
+    const tMatFiles = useTranslations("Materials.files")
     const tCommon = useTranslations("Common")
     const [dates, setDates] = useState<{
         date?: Date
@@ -210,14 +212,14 @@ export function CharacteristicValueForm({
             const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
             if (oversizedFiles.length > 0) {
                 const fileNames = oversizedFiles.map((f) => f.name).join(", ")
-                const message = tMat.rich("fileSizeError", {
+                const message = tMatFiles.rich("fileSizeError", {
                     size: formatFileSize(MAX_FILE_SIZE),
                     files: fileNames,
                 })
                 console.error(message)
 
                 toast.error(
-                    tMat.rich("fileSizeError", {
+                    tMatFiles.rich("fileSizeError", {
                         size: formatFileSize(MAX_FILE_SIZE),
                         files: fileNames,
                     }),
@@ -238,7 +240,7 @@ export function CharacteristicValueForm({
 
             // Check if the size of files in this upload operation exceeds the limit
             if (totalNewFilesSize > MAX_TOTAL_FILE_SIZE) {
-                const message = tMat.rich("totalSizeError", {
+                const message = tMatFiles.rich("totalSizeError", {
                     size: formatFileSize(totalNewFilesSize),
                     maxSize: formatFileSize(MAX_TOTAL_FILE_SIZE),
                 })
@@ -291,7 +293,7 @@ export function CharacteristicValueForm({
             })
         } else {
             // Remove from file array in create mode
-            const currentFiles = value && typeof value === "object" && "file" in value ? [...value.file] : []
+            const currentFiles = value && typeof value === "object" && "fileToAdd" in value ? [...value.fileToAdd] : []
 
             // Revoke the URL if it exists
             const file = currentFiles[index]
@@ -306,7 +308,7 @@ export function CharacteristicValueForm({
             }
 
             currentFiles.splice(index, 1)
-            onChange({ file: currentFiles })
+            onChange({ fileToAdd: currentFiles })
         }
     }
 
@@ -592,7 +594,6 @@ export function CharacteristicValueForm({
                 let files: File[] = []
                 let existingFiles: Array<{ id: string; name: string; type: string }> = []
                 let filesToDelete: string[] = []
-
                 // Initialize file data based on value and editing state
                 if (isEditing) {
                     if (value && typeof value === "object") {
@@ -621,8 +622,8 @@ export function CharacteristicValueForm({
                     }
                 } else {
                     // For new material, just handle new files
-                    if (value && typeof value === "object" && "file" in value && Array.isArray(value.file)) {
-                        files = value.file
+                    if (value && typeof value === "object" && "fileToAdd" in value && Array.isArray(value.fileToAdd)) {
+                        files = value.fileToAdd
 
                         // Create preview URLs for new files
                         files.forEach((file, index) => {
@@ -654,7 +655,7 @@ export function CharacteristicValueForm({
                                 className="w-full"
                             >
                                 <Upload className="h-4 w-4 mr-2" />
-                                {tMat("uploadFiles")}
+                                {tMatFiles("uploadFiles")}
                             </Button>
                         </div>
 
@@ -662,7 +663,15 @@ export function CharacteristicValueForm({
                             {/* Display new files */}
                             {files && files.length > 0 && (
                                 <div>
-                                    <h4 className="text-sm font-medium mb-2">{tMat("newFiles")}</h4>
+                                    <h4 className="text-sm font-medium mb-2">{tMatFiles("newFiles")}</h4>
+                                    {process.env.NEXT_PUBLIC_STORAGE_ENABLED !== "true" && (
+                                        <Alert variant="warning" className="mb-2">
+                                            <AlertCircleIcon />
+                                            <AlertTitle>
+                                                    {tMatFiles("storageDisabled")}
+                                                </AlertTitle>
+                                            </Alert>
+                                    )}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                                         {files.map((file, index) => (
                                             <div
@@ -708,7 +717,7 @@ export function CharacteristicValueForm({
 
                             {isEditing && existingFiles && existingFiles.length > 0 && (
                                 <div className="flex flex-col gap-2 mt-2">
-                                    <h4 className="text-sm font-medium">{tMat("existingFiles")}</h4>
+                                    <h4 className="text-sm font-medium">{tMatFiles("existingFiles")}</h4>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                                         {existingFiles.map((file) => {
                                             const isMarkedForDeletion = isFileMarkedForDeletion(file.id)
@@ -766,7 +775,7 @@ export function CharacteristicValueForm({
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
                                                             {isMarkedForDeletion
-                                                                ? tMat("markedForDeletion")
+                                                                ? tMatFiles("markedForDeletion")
                                                                 : file.type || "File"}
                                                         </p>
                                                         {!isMarkedForDeletion && (
@@ -783,7 +792,7 @@ export function CharacteristicValueForm({
                                                                         }}
                                                                     >
                                                                         <Eye className="h-3 w-3" />
-                                                                        {tMat("view")}
+                                                                        {tMatFiles("view")}
                                                                     </Button>
                                                                 )}
                                                                 <a
@@ -801,7 +810,7 @@ export function CharacteristicValueForm({
                                                                     }}
                                                                 >
                                                                     <Download className="h-3 w-3 mr-1" />
-                                                                    {tMat("download")}
+                                                                    {tMatFiles("download")}
                                                                 </a>
                                                             </div>
                                                         )}

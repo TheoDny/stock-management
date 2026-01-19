@@ -520,6 +520,7 @@
             "noHistory": "No history found for this material"
         },
         "files": {
+            "storageDisabled": "File storage is disabled. Files will not be saved.",
             "uploadFiles": "Upload Files",
             "newFiles": "New Files",
             "existingFiles": "Existing Files",

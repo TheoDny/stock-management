@@ -1,6 +1,6 @@
 "use client"
 
-import { FileEdit, History, Pencil, Plus, Search } from "lucide-react"
+import { History, Pencil, Plus, Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
@@ -10,13 +10,8 @@ import { getMaterialsAction } from "@/actions/material.actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Column, DataTable } from "@/components/ui/data-table"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDate } from "@/lib/utils"
 import { MaterialWithTag } from "@/types/material.type"
 import { MaterialDialog } from "./material-dialog"
@@ -173,26 +168,34 @@ export function MaterialManagement() {
             key: "actions",
             header: t("columns.actions"),
             cell: (material) => (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                        >
-                            <FileEdit className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditMaterial(material)}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            {t("dialog.edit")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleViewHistory(material.id)}>
-                            <History className="h-4 w-4 mr-2" />
-                            {t("history.title")}
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex gap-1">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleViewHistory(material.id)}>
+                                        <History />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("history.title")}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditMaterial(material)}>
+                                <Pencil />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("dialog.edit")}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div> 
             ),
         },
     ]

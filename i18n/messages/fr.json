@@ -487,28 +487,28 @@
             "updatedAt": "Modifié le",
             "actions": "Actions"
         },
-        "noData": "Aucun matériau trouvé.",
+        "noData": "Aucun matériel trouvé.",
         "errors": {
             "loadFailed": "Échec du chargement de matériel",
             "loadTagsFailed": "Échec du chargement des tags",
             "loadCharacteristicsFailed": "Échec du chargement des caractéristiques",
-            "loadMaterialCharacteristicsFailed": "Échec du chargement des caractéristiques du matériau",
-            "updateFailed": "Échec de la mise à jour du matériau",
-            "createFailed": "Échec de la création du matériau"
+            "loadMaterialCharacteristicsFailed": "Échec du chargement des caractéristiques du matériel",
+            "updateFailed": "Échec de la mise à jour du matériel",
+            "createFailed": "Échec de la création du matériel"
         },
         "success": {
-            "updateSuccess": "Matériau mis à jour avec succès",
-            "createSuccess": "Matériau créé avec succès"
+            "updateSuccess": "Matériel mis à jour avec succès",
+            "createSuccess": "Matériel créé avec succès"
         },
         "dialog": {
-            "create": "Créer un Matériau",
-            "edit": "Modifier un Matériau",
-            "createDescription": "Remplissez les détails pour créer un nouveau matériau.",
-            "editDescription": "Mettez à jour les détails du matériau ci-dessous.",
+            "create": "Créer un Matériel",
+            "edit": "Modifier un Matériel",
+            "createDescription": "Remplissez les détails pour créer un nouveau matériel.",
+            "editDescription": "Mettez à jour les détails du matériel ci-dessous.",
             "name": "Nom",
-            "namePlaceholder": "Nom du matériau",
+            "namePlaceholder": "Nom du matériel",
             "description": "Description",
-            "descriptionPlaceholder": "Description du matériau",
+            "descriptionPlaceholder": "Description du matériel",
             "general": "Général",
             "tags": "Tags",
             "characteristics": "Caractéristiques",
@@ -518,10 +518,11 @@
             "noCharacteristics": "Aucune caractéristique ajoutée"
         },
         "history": {
-            "title": "Historique du Matériau",
-            "noHistory": "Aucun historique trouvé pour ce matériau"
+            "title": "Historique du Matériel",
+            "noHistory": "Aucun historique trouvé pour ce matériel"
         },
         "files": {
+            "storageDisabled": "Le stockage des fichiers est désactivé. Les fichiers ne seront pas enregistrés.",
             "uploadFiles": "Télécharger des fichiers",
             "newFiles": "Nouveaux fichiers",
             "existingFiles": "Fichiers existants",
