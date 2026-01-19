@@ -198,6 +198,7 @@ export function TagManagement() {
                 pageSizeOptions={[15, 50, 100]}
                 defaultPageSize={15}
                 noDataMessage={t("noData")}
+                actionOnDoubleClick={(tag) => handleEditTag(tag)}
             />
 
             <TagDialog

@@ -201,6 +201,7 @@ export function CharacteristicManagement() {
                 pageSizeOptions={[15, 50, 100]}
                 defaultPageSize={15}
                 noDataMessage={t("noData")}
+                actionOnDoubleClick={(characteristic) => handleEditCharacteristic(characteristic)}
             />
 
             <CharacteristicDialog

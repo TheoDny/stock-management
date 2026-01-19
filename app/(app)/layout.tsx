@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth"
 import { PermissionModel as Permission } from "@/prisma/generated/models/Permission"
 import { ConfirmDialogProvider } from "@/provider/ConfirmationProvider"
 import { NavigationGroupType, NavigationType } from "@/types/navigation.type"
+import "dotenv/config"
 import { Boxes, IdCard, ListTree, Logs, SquareChartGantt, Tags, Users } from "lucide-react"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale, getTranslations } from "next-intl/server"
@@ -19,7 +20,7 @@ interface RootLayoutProps {
     children: ReactNode
 }
 
-const appName = process.env.NEXT_PUBLIC_APP_NAME ?? "App name"
+const appName = process.env.NEXT_PUBLIC_NAME_APP ?? "App name"
 
 export default async function RootLayout({ children }: RootLayoutProps) {
     const session = await auth.api.getSession({

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDate } from "@/lib/utils"
 import { MaterialWithTag } from "@/types/material.type"
+import Link from "next/link"
 import { MaterialDialog } from "./material-dialog"
 
 type SortField = "name" | "updatedAt"
@@ -174,8 +175,10 @@ export function MaterialManagement() {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleViewHistory(material.id)}>
-                                        <History />
+                            >
+                                <Link href={`/materials/history/${material.id}`}>
+                                    <History />
+                                </Link>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -225,6 +228,7 @@ export function MaterialManagement() {
                 pageSizeOptions={[15, 50, 100]}
                 defaultPageSize={15}
                 noDataMessage={t("noData")}
+                actionOnDoubleClick={(material) => handleEditMaterial(material)}
             />
 
             <MaterialDialog

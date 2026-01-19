@@ -20,6 +20,7 @@ type DataTableProps<T> = {
     defaultPageSize?: number
     noDataMessage?: string
     className?: string
+    actionOnDoubleClick?: (item: T) => void
 }
 
 export function DataTable<T>({
@@ -30,6 +31,7 @@ export function DataTable<T>({
     defaultPageSize = 10,
     noDataMessage = "No data available",
     className,
+    actionOnDoubleClick,
 }: DataTableProps<T>) {
     // Pagination
     const [currentPage, setCurrentPage] = useState(1)
@@ -91,7 +93,11 @@ export function DataTable<T>({
                             </TableHeader>
                             <TableBody>
                                 {paginatedData.map((item) => (
-                                    <TableRow key={keyExtractor(item)}>
+                                    <TableRow 
+                                        key={keyExtractor(item)}
+                                        onDoubleClick={() => actionOnDoubleClick?.(item)}
+                                        className={actionOnDoubleClick ? "cursor-pointer" : ""}
+                                    >
                                         {columns.map((column) => (
                                             <TableCell key={`${keyExtractor(item)}-${column.key}`}>
                                                 {column.cell(item)}
