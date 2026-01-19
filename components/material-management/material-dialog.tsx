@@ -17,6 +17,7 @@ import {
 import { getTagsAction } from "@/actions/tag.action"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Combobox } from "@/components/ui/combobox"
 import {
     Dialog,
     DialogContent,
@@ -34,7 +35,6 @@ import {
     FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -70,6 +70,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const [characteristicValues, setCharacteristicValues] = useState<MaterialCharacteristicClient[]>([])
     const [activeTab, setActiveTab] = useState("general")
     const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
+    const [selectedCharacteristicId, setSelectedCharacteristicId] = useState<string>("")
     const tCommon = useTranslations("Common")
     const tMaterialDialog = useTranslations("Materials.dialog")
     const tMaterials = useTranslations("Materials")
@@ -388,22 +389,35 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         }
     }
 
-    const handleAddCharacteristic = (characteristicId: string) => {
-        // Check if already added
-        if (characteristicValues.some((cv) => cv.characteristicId === characteristicId)) {
+    const handleAddCharacteristic = (characteristicId: string | string[]) => {
+        const id = Array.isArray(characteristicId) ? characteristicId[0] : characteristicId
+        
+        if (!id) {
             return
         }
 
-        const characteristic = characteristics.find((c) => c.id === characteristicId)
+        // Find characteristic by name
+        const characteristic = characteristics.find((c) => c.id === id)
 
-        if (characteristic) {
-            const newValueCharacteristic = buildCharacteristicDefaultValue(characteristic)
-
-            setCharacteristicValues([...characteristicValues, newValueCharacteristic])
-            // Add to the order list
-            const currentOrder = form.getValues("orderCharacteristics")
-            form.setValue("orderCharacteristics", [...currentOrder, characteristicId])
+        if (!characteristic) {
+            setSelectedCharacteristicId("")
+            return
         }
+
+        // Check if already added
+        if (characteristicValues.some((cv) => cv.characteristicId === characteristic.id)) {
+            setSelectedCharacteristicId("")
+            return
+        }
+
+        const newValueCharacteristic = buildCharacteristicDefaultValue(characteristic)
+
+        setCharacteristicValues([...characteristicValues, newValueCharacteristic])
+        // Add to the order list
+        const currentOrder = form.getValues("orderCharacteristics")
+        form.setValue("orderCharacteristics", [...currentOrder, characteristic.id])
+
+        setSelectedCharacteristicId("")
     }
 
     const handleRemoveCharacteristic = (characteristicId: string) => {
@@ -615,34 +629,18 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center">
                                             <FormLabel>{tMaterialDialog("characteristics")}</FormLabel>
-                                            <Select
-                                                onValueChange={handleAddCharacteristic}
-                                                value=""
-                                            >
-                                                <SelectTrigger className="w-[250px]">
-                                                    <SelectValue
-                                                        placeholder={tMaterialDialog("addCharacteristics")}
-                                                    />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {availableCharacteristics.map((characteristic) => (
-                                                        <SelectItem
-                                                            key={characteristic.id}
-                                                            value={characteristic.id}
-                                                        >
-                                                            {characteristic.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                    {availableCharacteristics.length === 0 && (
-                                                        <SelectItem
-                                                            value="none"
-                                                            disabled
-                                                        >
-                                                            {tMaterialDialog("characteristicsUnavailable")}
-                                                        </SelectItem>
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
+                                            <Combobox
+                                                options={availableCharacteristics.map((characteristic) => ({
+                                                    value: characteristic.id,
+                                                    label: characteristic.name,
+                                                }))}
+                                                value={selectedCharacteristicId}
+                                                onChange={handleAddCharacteristic}
+                                                placeholder={tMaterialDialog("addCharacteristics")}
+                                                emptyMessage={tMaterialDialog("characteristicsUnavailable")}
+                                                className="w-[250px]"
+                                                disabled={availableCharacteristics.length === 0}
+                                            />
                                         </div>
 
                                         <div className="space-y-4 mb-0.5">
