@@ -553,5 +553,13 @@
         "hours": "Heures",
         "from": "De",
         "to": "À"
+    },
+    "DataTable": {
+        "noData": "Aucune donnée disponible",
+        "page": "Page",
+        "on": "sur",
+        "itemsPerPage": "Lignes par page",
+        "total": "Total",
+        "items": "Éléments"
     }
 }

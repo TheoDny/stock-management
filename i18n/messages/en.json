@@ -551,5 +551,13 @@
         "hours": "Hours",
         "from": "From",
         "to": "To"
+    },
+    "DataTable": {
+        "noData": "No data available",
+        "page": "Page",
+        "on": "on",
+        "itemsPerPage": "Rows per page",
+        "total": "Total",
+        "items": "Items"
     }
 }

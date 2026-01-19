@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
 export type Column<T> = {
@@ -29,7 +30,7 @@ export function DataTable<T>({
     keyExtractor,
     pageSizeOptions = [10, 50, 100],
     defaultPageSize = 10,
-    noDataMessage = "No data available",
+    noDataMessage,
     className,
     actionOnDoubleClick,
 }: DataTableProps<T>) {
@@ -38,7 +39,8 @@ export function DataTable<T>({
     const [itemsPerPage, setItemsPerPage] = useState(defaultPageSize)
     const [paginatedData, setPaginatedData] = useState<T[]>([])
     const [totalPages, setTotalPages] = useState(1)
-
+    const tDataTable = useTranslations("DataTable")
+    noDataMessage = noDataMessage || tDataTable("noData")
     // Mettre à jour la pagination quand les données ou les paramètres de pagination changent
     useEffect(() => {
         const updatePagination = () => {
@@ -113,9 +115,9 @@ export function DataTable<T>({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             <p className="text-sm text-muted-foreground">
-                                {data.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
-                                {" - "}
-                                {Math.min(currentPage * itemsPerPage, data.length)} {" -- (" + data.length + ")"}
+                                {tDataTable("page")} {data.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                                {" " + tDataTable("on") + " "}
+                                {totalPages} {" -- (" + tDataTable("total") + " " + data.length + ")"}
                             </p>
                             <div className="flex items-center space-x-2">
                                 <Select
