@@ -20,6 +20,7 @@ type CharacteristicCreateData = {
 type CharacteristicUpdateData = {
     name: string
     description: string
+    options?: string[] | null
 }
 
 // Get all characteristics with material count
@@ -97,10 +98,69 @@ export async function updateCharacteristic(
             throw new Error("Characteristic not found")
         }
 
-        // Check if there is realy any change
+        // Prepare update data
+        const updateData: {
+            name: string
+            description: string
+            options?: any
+        } = {
+            name: param.name,
+            description: param.description,
+        }
+
+        // Get existing options as array for comparison
+        const existingOptions = Array.isArray(existingCharacteristic.options)
+            ? existingCharacteristic.options
+            : existingCharacteristic.options
+                ? [existingCharacteristic.options]
+                : []
+
+        // Handle options update if provided
+        if (param.options != undefined) {
+            // Merge existing options with new ones
+            // Keep all existing options (they can be modified but not removed)
+            // Add new options that don't exist yet
+            const updatedOptions = [...existingOptions]
+
+            // Update existing options with new values and add new ones
+            param.options.forEach((newOption) => {
+                const trimmedOption = newOption.trim()
+                if (trimmedOption && !updatedOptions.includes(trimmedOption)) {
+                    updatedOptions.push(trimmedOption)
+                }
+            })
+
+            updateData.options = updatedOptions.length > 0 ? updatedOptions : null
+        }
+
+        // Check if name or description changed
+        const nameChanged = existingCharacteristic.name !== param.name
+        const descriptionChanged = existingCharacteristic.description !== param.description
+
+        // Check if any existing option was modified (not just new ones added)
+        // An existing option is considered modified if it's no longer in the new options list
+        // (meaning its value was changed)
+        let existingOptionModified = false
+        if (param.options != undefined && existingOptions.length > 0) {
+            const newOptionsSet = new Set(param.options.map((opt) => opt.trim()))
+            
+            // Check if any existing option is missing from the new options
+            // This means it was modified (changed to a different value)
+            existingOptionModified = existingOptions.some((existingOpt) => {
+                const existingOptStr = String(existingOpt).trim()
+                return !newOptionsSet.has(existingOptStr)
+            })
+        }
+
+        // Check if there is really any change
+        const optionsChanged =
+            param.options !== undefined &&
+            JSON.stringify(existingCharacteristic.options) !== JSON.stringify(updateData.options)
+
         if (
-            existingCharacteristic.name === param.name &&
-            existingCharacteristic.description === param.description
+            !nameChanged &&
+            !descriptionChanged &&
+            !optionsChanged
         ) {
             const { Materials, ...char } = existingCharacteristic
             return char
@@ -111,14 +171,14 @@ export async function updateCharacteristic(
                 id,
                 entityId,
             },
-            data: {
-                name: param.name,
-                description: param.description,
-            },
+            data: updateData,
         })
 
-        // Generate material history for all active materials using this characteristic
-        if (existingCharacteristic.Materials.length > 0) {
+        // Generate material history ONLY if name, description, or existing options were modified
+        // NOT if only new options were added
+        const shouldGenerateHistory = nameChanged || descriptionChanged || existingOptionModified
+
+        if (shouldGenerateHistory && existingCharacteristic.Materials.length > 0) {
             existingCharacteristic.Materials.forEach((material) => {
                 // No need to await, we can generate histories in the background
                 createMaterialHistory(material.id)

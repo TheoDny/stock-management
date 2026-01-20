@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { PlusCircle, Trash2, X } from "lucide-react"
+import { Check, Pencil, PlusCircle, Trash2, Undo2, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -72,6 +72,7 @@ const createCharacteristicSchema = z.object({
 const updateCharacteristicSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     description: z.string().optional(),
+    options: z.array(z.string().trim()).optional(),
 })
 
 type CreateCharacteristicFormValues = z.infer<typeof createCharacteristicSchema>
@@ -90,6 +91,10 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
 
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [optionItems, setOptionItems] = useState<string[]>([])
+    const [originalOptions, setOriginalOptions] = useState<string[]>([])
+    const [newlyAddedOptions, setNewlyAddedOptions] = useState<Set<string>>(new Set())
+    const [editingOptionIndex, setEditingOptionIndex] = useState<number | null>(null)
+    const [editingOptionValue, setEditingOptionValue] = useState("")
     const [newOption, setNewOption] = useState("")
 
     const isEditing = !!characteristic
@@ -111,6 +116,7 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
         defaultValues: {
             name: characteristic?.name || "",
             description: characteristic?.description || "",
+            options: [],
         },
     })
 
@@ -118,10 +124,33 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
 
     useEffect(() => {
         if (open && characteristic) {
+            const getOptionsArray = () => {
+                if (!characteristic?.options) return []
+
+                if (Array.isArray(characteristic.options)) {
+                    return characteristic.options as string[]
+                }
+
+                // Si c'est un objet JSON ou une autre structure
+                try {
+                    return [characteristic.options.toString()]
+                } catch (e) {
+                    return []
+                }
+            }
+
+            const existingOptions = getOptionsArray()
             updateForm.reset({
                 name: characteristic.name,
                 description: characteristic.description,
+                options: existingOptions,
             })
+
+            setOptionItems(existingOptions)
+            setOriginalOptions([...existingOptions]) // Garder une copie des options originales
+            setNewlyAddedOptions(new Set()) // Réinitialiser les nouvelles options
+            setEditingOptionIndex(null)
+            setEditingOptionValue("")
         } else if (open && !characteristic) {
             createForm.reset({
                 name: "",
@@ -131,7 +160,10 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                 units: "",
             })
             setOptionItems([])
+            setOriginalOptions([])
             setNewOption("")
+            setEditingOptionIndex(null)
+            setEditingOptionValue("")
         }
     }, [open, characteristic, updateForm, createForm])
 
@@ -141,25 +173,109 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
             createForm.setValue("options", optionItems.join(","))
         } else if (!isEditing) {
             createForm.setValue("options", "")
+        } else if (isEditing) {
+            updateForm.setValue("options", optionItems)
         }
-    }, [optionItems, createForm, isEditing])
+    }, [optionItems, createForm, updateForm, isEditing])
 
     const handleClose = (refreshData: boolean = false) => {
         form.reset()
         setOptionItems([])
+        setOriginalOptions([])
+        setNewlyAddedOptions(new Set())
         setNewOption("")
+        setEditingOptionIndex(null)
+        setEditingOptionValue("")
         onClose(refreshData)
     }
 
     const addOption = () => {
         if (!newOption.trim()) return
 
-        if (!optionItems.includes(newOption.trim())) {
-            setOptionItems([...optionItems, newOption.trim()])
+        const trimmedOption = newOption.trim()
+        if (!optionItems.includes(trimmedOption)) {
+            setOptionItems([...optionItems, trimmedOption])
+            // Marquer cette option comme nouvellement ajoutée
+            setNewlyAddedOptions((prev) => new Set(prev).add(trimmedOption))
             setNewOption("")
         } else {
             toast.error(t("optionAlreadyExists"))
         }
+    }
+
+    const startEditingOption = (index: number) => {
+        setEditingOptionIndex(index)
+        setEditingOptionValue(optionItems[index])
+    }
+
+    const saveEditingOption = () => {
+        if (editingOptionIndex === null || !editingOptionValue.trim()) return
+
+        const trimmedValue = editingOptionValue.trim()
+        const oldValue = optionItems[editingOptionIndex]
+
+        // Check if the value already exists (except at the current index)
+        const existsAtOtherIndex = optionItems.some(
+            (opt, idx) => opt === trimmedValue && idx !== editingOptionIndex,
+        )
+
+        if (existsAtOtherIndex) {
+            toast.error(t("optionAlreadyExists"))
+            return
+        }
+
+        const newOptions = [...optionItems]
+        newOptions[editingOptionIndex] = trimmedValue
+        setOptionItems(newOptions)
+
+        // Si l'ancienne valeur était une nouvelle option, mettre à jour le Set
+        if (newlyAddedOptions.has(oldValue)) {
+            setNewlyAddedOptions((prev) => {
+                const newSet = new Set(prev)
+                newSet.delete(oldValue)
+                if (!originalOptions.includes(trimmedValue)) {
+                    newSet.add(trimmedValue)
+                }
+                return newSet
+            })
+        } else if (!originalOptions.includes(trimmedValue)) {
+            // Si la nouvelle valeur n'est pas dans les originales, c'est une nouvelle option
+            setNewlyAddedOptions((prev) => new Set(prev).add(trimmedValue))
+        }
+
+        setEditingOptionIndex(null)
+        setEditingOptionValue("")
+    }
+
+    const cancelEditingOption = () => {
+        setEditingOptionIndex(null)
+        setEditingOptionValue("")
+    }
+
+    const removeNewOption = (index: number) => {
+        const optionToRemove = optionItems[index]
+
+        // Vérifier que c'est bien une nouvelle option (ajoutée pendant l'édition)
+        if (!newlyAddedOptions.has(optionToRemove)) {
+            toast.error(t("cannotRemoveOriginalOption") || "Cannot remove original option")
+            return
+        }
+
+        const newOptions = [...optionItems]
+        newOptions.splice(index, 1)
+        setOptionItems(newOptions)
+
+        // Retirer de la liste des nouvelles options
+        setNewlyAddedOptions((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(optionToRemove)
+            return newSet
+        })
+    }
+
+    // Vérifier si une option est nouvelle (ajoutée pendant l'édition)
+    const isNewOption = (option: string) => {
+        return newlyAddedOptions.has(option)
     }
 
     const removeOption = (index: number) => {
@@ -186,6 +302,7 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                     id: characteristic.id,
                     name: updateValues.name,
                     description: updateValues.description || "",
+                    options: optionItems.length > 0 ? optionItems : null,
                 })
 
                 if (result?.serverError) {
@@ -258,22 +375,6 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
     const needsOptions = ["select", "radio", "multiSelect", "checkbox"].includes(selectedType)
     const needsUnits = ["number", "float"].includes(selectedType)
 
-    // Conversion des options en tableau de chaînes pour l'affichage
-    const getOptionsArray = () => {
-        if (!characteristic?.options) return []
-
-        if (Array.isArray(characteristic.options)) {
-            return characteristic.options
-        }
-
-        // Si c'est un objet JSON ou une autre structure
-        try {
-            return [characteristic.options.toString()]
-        } catch (e) {
-            return []
-        }
-    }
-
     return (
         <Dialog
             open={open}
@@ -337,18 +438,108 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                                     </div>
 
                                     {characteristic.options && (
-                                        <div className="space-y-1">
+                                        <div className="space-y-2">
                                             <div className="font-medium">{t("options")}:</div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {getOptionsArray().map((option, index) => (
-                                                    <Badge
+                                            <div className="bg-muted/40 p-2 rounded-md space-y-2">
+                                                {optionItems.map((option: string, index: number) => (
+                                                    <div
                                                         key={index}
-                                                        variant="secondary"
-                                                        className="py-1"
+                                                        className="flex items-center gap-2"
                                                     >
-                                                        {String(option)}
-                                                    </Badge>
+                                                        {editingOptionIndex === index ? (
+                                                            <>
+                                                                <Input
+                                                                    value={editingOptionValue}
+                                                                    onChange={(e) =>
+                                                                        setEditingOptionValue(e.target.value)
+                                                                    }
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === "Enter") {
+                                                                            e.preventDefault()
+                                                                            saveEditingOption()
+                                                                        } else if (e.key === "Escape") {
+                                                                            e.preventDefault()
+                                                                            cancelEditingOption()
+                                                                        }
+                                                                    }}
+                                                                    className="flex-1"
+                                                                    autoFocus
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={saveEditingOption}
+                                                                    className="h-8 w-8"
+                                                                >
+                                                                    <Check />
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={cancelEditingOption}
+                                                                    className="h-8 w-8"
+                                                                >
+                                                                    <Undo2 />
+                                                                </Button>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Badge
+                                                                        variant="secondary"
+                                                                        className={`flex-1 py-1 justify-start ${isNewOption(option)
+                                                                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-300 dark:border-green-700"
+                                                                            : ""
+                                                                            }`}
+                                                                    >
+                                                                        {String(option)}
+                                                                    </Badge>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => startEditingOption(index)}
+                                                                    className="h-8 w-8"
+                                                                >
+                                                                    <Pencil />
+                                                                </Button>
+                                                                {isNewOption(option) && (
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() => removeNewOption(index)}
+                                                                        className="text-destructive"
+                                                                    >
+                                                                        <X />
+                                                                    </Button>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 ))}
+                                                <div className="flex space-x-2 pt-2 border-t">
+                                                    <Input
+                                                        placeholder={t("addOptionPlaceholder")}
+                                                        value={newOption}
+                                                        onChange={(e) => setNewOption(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault()
+                                                                addOption()
+                                                            }
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="icon"
+                                                        onClick={addOption}
+                                                    >
+                                                        <PlusCircle className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     )}

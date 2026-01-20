@@ -33,6 +33,7 @@ const updateCharacteristicSchema = z.object({
         .min(2, "Name must be at least 2 characters")
         .max(64, "Name must be at most 64 characters"),
     description: z.string().trim().max(255, "Description must be at most 255 characters"),
+    options: z.array(z.string().trim()).nullable().optional(),
 })
 
 const deleteCharacteristicSchema = z.object({
@@ -84,11 +85,12 @@ export const updateCharacteristicAction = actionClient
         try {
             const session = await checkAuth({ requiredPermission: "characteristic_edit" })
 
-            const { id, name, description } = parsedInput
+            const { id, name, description, options } = parsedInput
 
             return await updateCharacteristic(id, session.user.entitySelectedId, {
                 name,
                 description,
+                options: options ?? undefined,
             })
         } catch (error) {
             console.error("Failed to update characteristic:", error)
