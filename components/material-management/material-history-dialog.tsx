@@ -9,6 +9,7 @@ import {
     DialogTitle
 } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { sleep } from "@/lib/utils"
 import { MaterialHistoryCharacTyped } from "@/types/material-history.type"
 import { useEffect, useState } from "react"
 import MaterialHistoryDisplay from "./material-history/material-history-view"
@@ -40,7 +41,18 @@ export function MaterialHistoryDialog({
                 })
                 .catch((error) => {
                     console.error(error)
+                }).finally(() => {
+                    setLoading(false)
                 })
+        }
+        return () => {
+            //avoid flickering when closing the dialog
+            sleep(300).then(() => {
+                sleep(200).then(() => {
+                    setLastHistory(null)
+                    setLoading(true)
+                })
+            })
         }
     }, [open, materialId])
 
