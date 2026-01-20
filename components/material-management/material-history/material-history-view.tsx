@@ -247,7 +247,7 @@ export default function MaterialHistoryDisplay({ history }: { history: MaterialH
     return (
         <div className="space-y-4">
             <div className="border rounded-md">
-                {history.map((record, index) => (
+                {history.length > 1 ? history.map((record, index) => (
                     <React.Fragment key={index}>
                         {index > 0 && <Separator />}
                         <Accordion
@@ -265,175 +265,192 @@ export default function MaterialHistoryDisplay({ history }: { history: MaterialH
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="px-4">
-                                    {/* Tabs for mobile and medium screens */}
-                                    <div className="2xl:hidden">
-                                        <Tabs defaultValue="details">
-                                            <TabsList className="w-full grid grid-cols-2 gap-2 mt-2">
-                                                <TabsTrigger value="details">
-                                                    {historyT("detailsAndTags")}
-                                                </TabsTrigger>
-                                                <TabsTrigger value="characteristics">
-                                                    {historyT("characteristics")}
-                                                </TabsTrigger>
-                                            </TabsList>
-
-                                            <TabsContent value="details">
-                                                <div className="grid grid-cols-2 gap-2 mt-2">
-                                                    <div className="text-sm font-medium">{historyT("name")}:</div>
-                                                    <div className="text-sm">{record.name || historyT("na")}</div>
-
-                                                    <div className="text-sm font-medium">
-                                                        {historyT("description")}:
-                                                    </div>
-                                                    <div className="text-sm">
-                                                        {record.description || historyT("na")}
-                                                    </div>
-
-                                                    <div className="text-sm font-medium">
-                                                        {historyT("createdAt")}:
-                                                    </div>
-                                                    <div className="text-sm">
-                                                        {new Date(record.createdAt).toLocaleString()}
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-4">
-                                                    <div className="text-sm font-medium mb-2">
-                                                        {historyT("tags")}:
-                                                    </div>
-                                                    {parseTags(record.Tags).length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {parseTags(record.Tags).map((tag, idx) => (
-                                                                <Badge
-                                                                    style={{
-                                                                        backgroundColor: tag.color,
-                                                                        color: tag.fontColor,
-                                                                    }}
-                                                                    key={idx}
-                                                                >
-                                                                    {tag.name}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-sm text-gray-500">
-                                                            {historyT("noTags")}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </TabsContent>
-
-                                            <TabsContent value="characteristics">
-                                                {parseCharacteristics(record.Characteristics).length > 0 ? (
-                                                    <div className="space-y-3 mt-2">
-                                                        {parseCharacteristics(record.Characteristics).map(
-                                                            (char, idx) => (
-                                                                <div key={idx}>
-                                                                    <CharacteristicDisplay
-                                                                        characteristic={char}
-                                                                        showLabel={true}
-                                                                    />
-                                                                    {idx <
-                                                                        parseCharacteristics(
-                                                                            record.Characteristics,
-                                                                        ).length -
-                                                                            1 && <Separator className="my-3" />}
-                                                                </div>
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div className="mt-2 text-sm text-gray-500">
-                                                        {historyT("noCharacteristics")}
-                                                    </div>
-                                                )}
-                                            </TabsContent>
-                                        </Tabs>
-                                    </div>
-
-                                    {/* Side by side for large screens */}
-                                    <div className="hidden 2xl:grid 2xl:grid-cols-2 2xl:gap-6 2xl:mt-2">
-                                        {/* Left column: Details and Tags */}
-                                        <div>
-                                            <h3 className="text-sm font-medium mb-3">
-                                                {historyT("detailsAndTags")}
-                                            </h3>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div className="text-sm font-medium">{historyT("name")}:</div>
-                                                <div className="text-sm">{record.name || historyT("na")}</div>
-
-                                                <div className="text-sm font-medium">
-                                                    {historyT("description")}:
-                                                </div>
-                                                <div className="text-sm">
-                                                    {record.description || historyT("na")}
-                                                </div>
-
-                                                <div className="text-sm font-medium">{historyT("createdAt")}:</div>
-                                                <div className="text-sm">
-                                                    {new Date(record.createdAt).toLocaleString()}
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-4">
-                                                <div className="text-sm font-medium mb-2">{historyT("tags")}:</div>
-                                                {parseTags(record.Tags).length > 0 ? (
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {parseTags(record.Tags).map((tag, idx) => (
-                                                            <Badge
-                                                                style={{
-                                                                    backgroundColor: tag.color,
-                                                                    color: tag.fontColor,
-                                                                }}
-                                                                key={idx}
-                                                            >
-                                                                {tag.name}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-sm text-gray-500">
-                                                        {historyT("noTags")}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Right column: Characteristics */}
-                                        <div>
-                                            <h3 className="text-sm font-medium mb-3">
-                                                {historyT("characteristics")}
-                                            </h3>
-                                            {parseCharacteristics(record.Characteristics).length > 0 ? (
-                                                <div className="space-y-3">
-                                                    {parseCharacteristics(record.Characteristics).map(
-                                                        (char, idx) => (
-                                                            <div key={idx}>
-                                                                <CharacteristicDisplay
-                                                                    characteristic={char}
-                                                                    showLabel={true}
-                                                                />
-                                                                {idx <
-                                                                    parseCharacteristics(record.Characteristics)
-                                                                        .length -
-                                                                        1 && <Separator className="my-3" />}
-                                                            </div>
-                                                        ),
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="text-sm text-gray-500">
-                                                    {historyT("noCharacteristics")}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <MaterialHistoryElement record={record} />
                                 </AccordionContent>
                             </AccordionItem>
                         </Accordion>
                     </React.Fragment>
-                ))}
+                ))
+                    :
+                    <Card className="border-none">
+                        <CardContent>
+                            <MaterialHistoryElement record={history[0]} />
+                        </CardContent>
+                    </Card>
+                }
             </div>
         </div>
+    )
+}
+
+const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped }) => {
+    const historyT = useTranslations("MaterialHistory")
+
+    return (
+        <>
+            {/* Tabs for mobile and medium screens */}
+            <div className="2xl:hidden">
+                <Tabs defaultValue="details">
+                    <TabsList className="w-full grid grid-cols-2 gap-2 mt-2">
+                        <TabsTrigger value="details">
+                            {historyT("detailsAndTags")}
+                        </TabsTrigger>
+                        <TabsTrigger value="characteristics">
+                            {historyT("characteristics")}
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="details">
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                            <div className="text-sm font-medium">{historyT("name")}:</div>
+                            <div className="text-sm">{record.name || historyT("na")}</div>
+
+                            <div className="text-sm font-medium">
+                                {historyT("description")}:
+                            </div>
+                            <div className="text-sm">
+                                {record.description || historyT("na")}
+                            </div>
+
+                            <div className="text-sm font-medium">
+                                {historyT("createdAt")}:
+                            </div>
+                            <div className="text-sm">
+                                {new Date(record.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+
+                        <div className="mt-4">
+                            <div className="text-sm font-medium mb-2">
+                                {historyT("tags")}:
+                            </div>
+                            {parseTags(record.Tags).length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {parseTags(record.Tags).map((tag, idx) => (
+                                        <Badge
+                                            style={{
+                                                backgroundColor: tag.color,
+                                                color: tag.fontColor,
+                                            }}
+                                            key={idx}
+                                        >
+                                            {tag.name}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-sm text-gray-500">
+                                    {historyT("noTags")}
+                                </div>
+                            )}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="characteristics">
+                        {parseCharacteristics(record.Characteristics).length > 0 ? (
+                            <div className="space-y-3 mt-2">
+                                {parseCharacteristics(record.Characteristics).map(
+                                    (char, idx) => (
+                                        <div key={idx}>
+                                            <CharacteristicDisplay
+                                                characteristic={char}
+                                                showLabel={true}
+                                            />
+                                            {idx <
+                                                parseCharacteristics(
+                                                    record.Characteristics,
+                                                ).length -
+                                                1 && <Separator className="my-3" />}
+                                        </div>
+                                    ),
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mt-2 text-sm text-gray-500">
+                                {historyT("noCharacteristics")}
+                            </div>
+                        )}
+                    </TabsContent>
+                </Tabs>
+            </div>
+
+            {/* Side by side for large screens */}
+            <div className="hidden 2xl:grid 2xl:grid-cols-2 2xl:gap-6 2xl:mt-2">
+                {/* Left column: Details and Tags */}
+                <div>
+                    <h3 className="text-sm font-medium mb-3">
+                        {historyT("detailsAndTags")}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="text-sm font-medium">{historyT("name")}:</div>
+                        <div className="text-sm">{record.name || historyT("na")}</div>
+
+                        <div className="text-sm font-medium">
+                            {historyT("description")}:
+                        </div>
+                        <div className="text-sm">
+                            {record.description || historyT("na")}
+                        </div>
+
+                        <div className="text-sm font-medium">{historyT("createdAt")}:</div>
+                        <div className="text-sm">
+                            {new Date(record.createdAt).toLocaleString()}
+                        </div>
+                    </div>
+
+                    <div className="mt-4">
+                        <div className="text-sm font-medium mb-2">{historyT("tags")}:</div>
+                        {parseTags(record.Tags).length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {parseTags(record.Tags).map((tag, idx) => (
+                                    <Badge
+                                        style={{
+                                            backgroundColor: tag.color,
+                                            color: tag.fontColor,
+                                        }}
+                                        key={idx}
+                                    >
+                                        {tag.name}
+                                    </Badge>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-sm text-gray-500">
+                                {historyT("noTags")}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Right column: Characteristics */}
+                <div>
+                    <h3 className="text-sm font-medium mb-3">
+                        {historyT("characteristics")}
+                    </h3>
+                    {parseCharacteristics(record.Characteristics).length > 0 ? (
+                        <div className="space-y-3">
+                            {parseCharacteristics(record.Characteristics).map(
+                                (char, idx) => (
+                                    <div key={idx}>
+                                        <CharacteristicDisplay
+                                            characteristic={char}
+                                            showLabel={true}
+                                        />
+                                        {idx <
+                                            parseCharacteristics(record.Characteristics)
+                                                .length -
+                                            1 && <Separator className="my-3" />}
+                                    </div>
+                                ),
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-sm text-gray-500">
+                            {historyT("noCharacteristics")}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </>
     )
 }

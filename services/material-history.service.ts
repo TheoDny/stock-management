@@ -140,3 +140,27 @@ export async function getMaterialHistory(
         throw new Error("Failed to fetch material history")
     }
 }
+
+export async function getMaterialHistoryLast(materialId: string): Promise<MaterialHistoryCharacTyped> {
+    try {
+        const history = await prisma.material_History.findFirst({
+            where: {
+                materialId,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        })
+
+        //it should not be possible to not have a history
+        if (!history) {
+            console.error(`No history found for material with id ${materialId}`)
+            throw new Error(`No history found for material with id ${materialId}`)
+        }
+
+        return history as MaterialHistoryCharacTyped
+    } catch (error) {
+        console.error("Failed service to fetch material history last:", error)
+        throw new Error("Failed service to fetch material history last")
+    }
+}

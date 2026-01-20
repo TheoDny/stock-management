@@ -1,8 +1,7 @@
 "use client"
 
-import { History, Pencil, Plus, Search } from "lucide-react"
+import { Eye, History, Pencil, Plus, Search } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
-import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -16,16 +15,18 @@ import { formatDate } from "@/lib/utils"
 import { MaterialWithTag } from "@/types/material.type"
 import Link from "next/link"
 import { MaterialDialog } from "./material-dialog"
+import { MaterialHistoryDialog } from "./material-history-dialog"
 
 type SortField = "name" | "updatedAt"
 type SortDirection = "asc" | "desc"
 
 export function MaterialManagement() {
-    const router = useRouter()
     const [materials, setMaterials] = useState<MaterialWithTag[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingMaterial, setEditingMaterial] = useState<MaterialWithTag | null>(null)
+    const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
+    const [selectedMaterialForLastHistory, setSelectedMaterialForLastHistory] = useState<{ id: string, name: string } | null>(null)
     const [sortField, setSortField] = useState<SortField>("updatedAt")
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
     const currentLocale = useLocale()
@@ -97,8 +98,9 @@ export function MaterialManagement() {
         setIsDialogOpen(true)
     }
 
-    const handleViewHistory = (materialId: string) => {
-        router.push(`/materials/history/${materialId}`)
+    const handleViewLastHistory = async (material: { id: string, name: string }) => {
+        setSelectedMaterialForLastHistory(material)
+        setIsHistoryDialogOpen(true)
     }
 
     const handleMaterialDialogClose = async (refreshData: boolean) => {
@@ -199,6 +201,20 @@ export function MaterialManagement() {
                             <p>{t("dialog.edit")}</p>
                         </TooltipContent>
                     </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleViewLastHistory({ id: material.id, name: material.name })}
+                            >
+                                <Eye />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{t("visualize")}</p>
+                        </TooltipContent>
+                    </Tooltip>
                 </div> 
             ),
         },
@@ -236,6 +252,18 @@ export function MaterialManagement() {
                 open={isDialogOpen}
                 material={editingMaterial}
                 onClose={handleMaterialDialogClose}
+            />
+
+            <MaterialHistoryDialog
+                open={isHistoryDialogOpen}
+                materialName={selectedMaterialForLastHistory?.name ?? null}
+                onOpenChange={(open) => {
+                    setIsHistoryDialogOpen(open)
+                    if (!open) {
+                        setSelectedMaterialForLastHistory(null)
+                    }
+                }}
+                materialId={selectedMaterialForLastHistory?.id ?? null}
             />
         </div>
     )

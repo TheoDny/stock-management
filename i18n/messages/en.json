@@ -481,6 +481,7 @@
         "description": "Create, edit and manage materials",
         "search": "Search materials...",
         "newMaterial": "New Material",
+        "visualize": "Visualize",
         "columns": {
             "name": "Name",
             "tags": "Tags",

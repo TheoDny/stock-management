@@ -483,6 +483,7 @@
         "description": "Créer, modifier et gérer du matériel",
         "search": "Rechercher du matériel...",
         "newMaterial": "Nouveau Matériel",
+        "visualize": "Visualiser",
         "columns": {
             "name": "Nom",
             "tags": "Tags",
