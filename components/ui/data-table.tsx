@@ -112,14 +112,15 @@ export function DataTable<T>({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedData.map((item) => (
+                                    {paginatedData.map((item, itemIndex) => (
                                     <TableRow 
                                         key={keyExtractor(item)}
                                         onDoubleClick={() => actionOnDoubleClick?.(item)}
-                                        className={actionOnDoubleClick ? "cursor-pointer" : ""}
+                                        className={`${actionOnDoubleClick ? "cursor-pointer" : ""
+                                            } ${itemIndex % 2 === 0 ? "bg-muted/15" : ""}`}
                                     >
                                         {columns.map((column) => (
-                                            <TableCell key={`${keyExtractor(item)}-${column.key}`}>
+                                            <TableCell key={`${keyExtractor(item)}-${column.key}`} className="py-1">
                                                 {column.cell(item)}
                                             </TableCell>
                                         ))}
