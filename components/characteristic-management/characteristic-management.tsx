@@ -1,7 +1,7 @@
 'use client'
 
 import { Pencil, Plus, Search } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Column, DataTable } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { formatDate } from "@/lib/utils"
 import { getTypeColor } from "@/lib/utils.client"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
 import { CharacteristicDialog } from "./characteristic-dialog"
@@ -27,6 +28,7 @@ export function CharacteristicManagement() {
     const [editingCharacteristic, setEditingCharacteristic] = useState<CharacteristicAndCountMaterial | null>(null)
     const [sortField, setSortField] = useState<SortField>("name")
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+    const currentLocale = useLocale()
 
     // Load characteristics on mount
     useEffect(() => {
@@ -151,6 +153,11 @@ export function CharacteristicManagement() {
             key: "materialsCount",
             header: t("columns.materials"),
             cell: (characteristic) => characteristic._count.Materials,
+        },
+        {
+            key: "updatedAt",
+            header: t("columns.updatedAt"),
+            cell: (characteristic) => formatDate(characteristic.updatedAt, "HH:mm - PPP", currentLocale as "en" | "fr"),
         },
         {
             key: "actions",

@@ -22,6 +22,7 @@
                 "options": "Options",
                 "units": "Unités",
                 "materials": "Matériels",
+                "updatedAt": "Modifié le",
                 "actions": "Actions"
             },
             "noData": "Aucune caractéristique trouvée.",
@@ -91,6 +92,7 @@
                 "colorText": "Couleur du texte",
                 "color": "Couleur",
                 "materials": "Matériels",
+                "updatedAt": "Modifié le",
                 "actions": "Actions"
             },
             "noData": "Aucun tag trouvé.",

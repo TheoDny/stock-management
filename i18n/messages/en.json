@@ -22,6 +22,7 @@
                 "options": "Options",
                 "units": "Units",
                 "materials": "Materials",
+                "updatedAt": "Updated At",
                 "actions": "Actions"
             },
             "noData": "No characteristics found.",
@@ -91,6 +92,7 @@
                 "colorText": "Color Text",
                 "color": "Color",
                 "materials": "Materials",
+                "updatedAt": "Updated At",
                 "actions": "Actions"
             },
             "noData": "No tags found.",

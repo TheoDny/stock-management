@@ -1,7 +1,7 @@
 "use client"
 
 import { History, Pencil, Plus, Search } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -28,6 +28,7 @@ export function MaterialManagement() {
     const [editingMaterial, setEditingMaterial] = useState<MaterialWithTag | null>(null)
     const [sortField, setSortField] = useState<SortField>("updatedAt")
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+    const currentLocale = useLocale()
     const t = useTranslations("Materials")
     const tCommon = useTranslations("Common")
 
@@ -163,7 +164,7 @@ export function MaterialManagement() {
         {
             key: "updatedAt",
             header: t("columns.updatedAt"),
-            cell: (material) => formatDate(material.updatedAt),
+            cell: (material) => formatDate(material.updatedAt, "HH:mm - PPP", currentLocale as "en" | "fr"),
         },
         {
             key: "actions",

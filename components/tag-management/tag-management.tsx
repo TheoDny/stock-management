@@ -1,7 +1,7 @@
 "use client"
 
 import { Pencil, Plus, Search } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Column, DataTable } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { formatDate } from "@/lib/utils"
 import { TagAndCountMaterial } from "@/types/tag.type"
 import { TagDialog } from "./tag-dialog"
 
@@ -25,6 +26,7 @@ export function TagManagement() {
     const [editingTag, setEditingTag] = useState<TagAndCountMaterial | null>(null)
     const [sortField, setSortField] = useState<SortField>("name")
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc")
+    const currentLocale = useLocale()
 
     // Load tags on mount
     useEffect(() => {
@@ -149,6 +151,11 @@ export function TagManagement() {
             key: "materialsCount",
             header: t("columns.materials"),
             cell: (tag) => tag._count.Materials,
+        },
+        {
+            key: "updatedAt",
+            header: t("columns.updatedAt"),
+            cell: (tag) => formatDate(tag.updatedAt, "HH:mm - PPP", currentLocale as "en" | "fr"),
         },
         {
             key: "actions",

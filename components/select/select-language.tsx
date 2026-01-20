@@ -33,6 +33,7 @@ export function LanguageSelector({
     ...props
 }: LanguageSelectorProps) {
     const currentLocale = useLocale()
+    
     const router = useRouter()
     const [localeToSet, setLocaleToSet] = useState<string | null>(null)
 
