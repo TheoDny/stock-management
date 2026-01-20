@@ -48,7 +48,7 @@ export function LanguageSelector({
                 document.cookie = `NEXT_LOCALE=${localeToSet}; path=/`
             }
             // Reload the page to apply the new language
-            router.push(window.location.pathname)
+            router.refresh()
         }
     }, [localeToSet, router])
 
