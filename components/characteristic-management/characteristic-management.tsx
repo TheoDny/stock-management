@@ -9,6 +9,7 @@ import { getCharacteristicsAction } from "@/actions/characteritic.action"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Column, DataTable } from "@/components/ui/data-table"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDate } from "@/lib/utils"
@@ -144,12 +145,45 @@ export function CharacteristicManagement() {
         {
             key: "options",
             header: t("columns.options"),
-            cell: () => null, // TODO handle option with different type
+            cell: (characteristic) => {
+                const options = characteristic.options as string[]
+                if (!characteristic.options) {
+                    return <span></span>
+                }
+
+                // Format options as string
+                const optionsText = options.join(", ")
+
+
+                // If text is longer than 50 characters, use HoverCard
+                if (optionsText.length > 50) {
+                    const truncatedText = optionsText.substring(0, 30) + "..."
+                    return (
+                        <HoverCard>
+                            <HoverCardTrigger asChild>
+                                <span className="cursor-pointer border p-1 rounded-md">
+                                    {truncatedText}
+                                </span>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="max-w-md">
+                                {options.map((option, i) => (
+                                    <div key={i}>
+                                        <p>{option}</p>
+                                        {i < options.length - 1 && <div className="my-2 border" />}
+                                    </div>
+                                ))}
+                            </HoverCardContent>
+                        </HoverCard>
+                    )
+                }
+
+                return <span>{optionsText}</span>
+            },
         },
         {
             key: "units",
             header: t("columns.units"),
-            cell: (characteristic) => characteristic.units || <span className="text-muted-foreground">{tCommon("none")}</span>,
+            cell: (characteristic) => characteristic.units || <span></span>,
         },
         {
             key: "materialsCount",
