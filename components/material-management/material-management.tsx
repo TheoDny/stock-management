@@ -245,7 +245,7 @@ export function MaterialManagement() {
                 pageSizeOptions={[15, 50, 100]}
                 defaultPageSize={15}
                 noDataMessage={t("noData")}
-                actionOnDoubleClick={(material) => handleEditMaterial(material)}
+                actionOnDoubleClick={(material) => handleViewLastHistory({ id: material.id, name: material.name })}
             />
 
             <MaterialDialog
