@@ -29,6 +29,13 @@ export function MaterialHistoryDialog({
 }: MaterialHistoryDialogProps) {
     const handleOpenChange = (isOpen: boolean) => {
         onOpenChange(isOpen)
+        if (!isOpen) {
+            //avoid flickering when closing the dialog
+            sleep(150).then(() => {
+                setLastHistory(null)
+                setLoading(true)
+            })
+        }
     }
     const [lastHistory, setLastHistory] = useState<MaterialHistoryCharacTyped | null>(null)
     const [loading, setLoading] = useState(true)
@@ -44,15 +51,6 @@ export function MaterialHistoryDialog({
                 }).finally(() => {
                     setLoading(false)
                 })
-        }
-        return () => {
-            //avoid flickering when closing the dialog
-            sleep(300).then(() => {
-                sleep(200).then(() => {
-                    setLastHistory(null)
-                    setLoading(true)
-                })
-            })
         }
     }, [open, materialId])
 
