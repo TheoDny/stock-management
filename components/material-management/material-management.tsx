@@ -9,6 +9,7 @@ import { getMaterialsAction } from "@/actions/material.actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Column, DataTable } from "@/components/ui/data-table"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatDate } from "@/lib/utils"
@@ -132,14 +133,33 @@ export function MaterialManagement() {
         {
             key: "name",
             header: t("columns.name"),
-            cell: (material) => (
-                <div>
-                    <div className="font-medium">{material.name}</div>
-                    <div className="text-sm text-muted-foreground truncate max-w-[250px]">
-                        {material.description}
-                    </div>
-                </div>
-            ),
+            cell: (material) => <div className="font-medium">{material.name}</div>,
+        },
+        {
+            key: "description",
+            header: t("columns.description"),
+            cell: (material) => {
+                const description = material.description || ""
+                // If description is longer than 100 characters, use HoverCard
+                if (description.length > 100) {
+                    return (
+                        <HoverCard>
+                            <HoverCardTrigger asChild>
+                                <span className="cursor-pointer border p-1 rounded-md truncate block max-w-[700px]">
+                                    {description}
+                                </span>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="w-lg bg-muted/50">
+                                <div className="text-sm whitespace-pre-wrap wrap-break-word">
+                                    {description}
+                                </div>
+                            </HoverCardContent>
+                        </HoverCard>
+                    )
+                }
+
+                return <div className="truncate max-w-[700px]">{description}</div>
+            },
         },
         {
             key: "tags",

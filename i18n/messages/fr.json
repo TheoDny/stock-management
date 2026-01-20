@@ -486,6 +486,7 @@
         "visualize": "Visualiser",
         "columns": {
             "name": "Nom",
+            "description": "Description",
             "tags": "Tags",
             "updatedAt": "Modifié le",
             "actions": "Actions"

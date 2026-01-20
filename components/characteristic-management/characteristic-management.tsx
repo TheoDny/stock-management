@@ -133,7 +133,29 @@ export function CharacteristicManagement() {
         {
             key: "description",
             header: t("columns.description"),
-            cell: (characteristic) => <div className="max-w-[200px] truncate">{characteristic.description}</div>,
+            cell: (characteristic) => {
+                const description = characteristic.description || ""
+
+                // If description is longer than 70 characters, use HoverCard
+                if (description.length > 75) {
+                    return (
+                        <HoverCard>
+                            <HoverCardTrigger asChild>
+                                <span className="cursor-pointer border p-1 rounded-md block truncate max-w-[500px]">
+                                    {description}
+                                </span>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="w-lg bg-muted/50">
+                                <div className="text-sm whitespace-pre-wrap wrap-break-word">
+                                    {description}
+                                </div>
+                            </HoverCardContent>
+                        </HoverCard>
+                    )
+                }
+
+                return <div className="truncate max-w-[500px]">{description}</div>
+            },
         },
         {
             key: "type",
