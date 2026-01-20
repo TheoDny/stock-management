@@ -80,7 +80,7 @@ export function DataTable<T>({
     const goToLastPage = () => goToPage(totalPages)
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
             {data.length === 0 ? (
                 <div className="text-center p-6">
                     <p>{noDataMessage}</p>

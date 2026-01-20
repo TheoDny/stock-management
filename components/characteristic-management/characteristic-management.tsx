@@ -226,7 +226,7 @@ export function CharacteristicManagement() {
     ]
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2">
             <div className="flex justify-between items-center">
                 <div className="relative w-[300px]">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
