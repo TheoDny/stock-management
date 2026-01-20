@@ -15,7 +15,7 @@ import { formatDate } from "@/lib/utils"
 import { TagAndCountMaterial } from "@/types/tag.type"
 import { TagDialog } from "./tag-dialog"
 
-type SortField = "name" | "colorText" | "materialsCount"
+type SortField = "name" | "colorText" | "materialsCount" | "updatedAt"
 type SortDirection = "asc" | "desc"
 
 export function TagManagement() {
@@ -75,6 +75,8 @@ export function TagManagement() {
                 comparison = a.fontColor.localeCompare(b.fontColor)
             } else if (sortField === "materialsCount") {
                 comparison = a._count.Materials - b._count.Materials
+            } else if (sortField === "updatedAt") {
+                comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
             }
 
             return sortDirection === "asc" ? comparison : -comparison
@@ -151,11 +153,17 @@ export function TagManagement() {
             key: "materialsCount",
             header: t("columns.materials"),
             cell: (tag) => tag._count.Materials,
+            sortable: true,
+            onSort: () => handleSort("materialsCount"),
+            sortDirection: sortField === "materialsCount" ? sortDirection : null,
         },
         {
             key: "updatedAt",
             header: t("columns.updatedAt"),
             cell: (tag) => formatDate(tag.updatedAt, "HH:mm - PPP", currentLocale as "en" | "fr"),
+            sortable: true,
+            onSort: () => handleSort("updatedAt"),
+            sortDirection: sortField === "updatedAt" ? sortDirection : null,
         },
         {
             key: "actions",

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
@@ -11,6 +11,9 @@ export type Column<T> = {
     key: string
     header: string
     cell: (item: T) => React.ReactNode
+    onSort?: () => void
+    sortable?: boolean
+    sortDirection?: "asc" | "desc" | null
 }
 
 type DataTableProps<T> = {
@@ -89,7 +92,22 @@ export function DataTable<T>({
                             <TableHeader>
                                 <TableRow>
                                     {columns.map((column) => (
-                                        <TableHead key={column.key}>{column.header}</TableHead>
+                                        <TableHead 
+                                            key={column.key}
+                                            className={column.sortable ? "cursor-pointer select-none hover:bg-muted/50" : ""}
+                                            onClick={column.sortable ? column.onSort : undefined}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {column.header}
+                                                {column.sortable && column.sortDirection && (
+                                                    column.sortDirection === "asc" ? (
+                                                        <ArrowUp className="h-4 w-4" />
+                                                    ) : (
+                                                        <ArrowDown className="h-4 w-4" />
+                                                    )
+                                                )}
+                                            </div>
+                                        </TableHead>
                                     ))}
                                 </TableRow>
                             </TableHeader>

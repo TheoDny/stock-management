@@ -68,7 +68,8 @@ export function MaterialManagement() {
             filtered = filtered.filter(
                 (material) =>
                     material.name.toLowerCase().includes(query) ||
-                    material.description.toLowerCase().includes(query),
+                    material.description.toLowerCase().includes(query) ||
+                    material.Tags.some((tag) => tag.name.toLowerCase().includes(query)),
             )
         }
 
@@ -167,6 +168,9 @@ export function MaterialManagement() {
             key: "updatedAt",
             header: t("columns.updatedAt"),
             cell: (material) => formatDate(material.updatedAt, "HH:mm - PPP", currentLocale as "en" | "fr"),
+            sortable: true,
+            onSort: () => handleSort("updatedAt"),
+            sortDirection: sortField === "updatedAt" ? sortDirection : null,
         },
         {
             key: "actions",

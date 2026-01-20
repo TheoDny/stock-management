@@ -16,7 +16,7 @@ import { getTypeColor } from "@/lib/utils.client"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
 import { CharacteristicDialog } from "./characteristic-dialog"
 
-type SortField = "name" | "type" | "materialsCount"
+type SortField = "name" | "type" | "materialsCount" | "updatedAt"
 type SortDirection = "asc" | "desc"
 
 export function CharacteristicManagement() {
@@ -80,6 +80,8 @@ export function CharacteristicManagement() {
                 comparison = a.type.localeCompare(b.type)
             } else if (sortField === "materialsCount") {
                 comparison = a._count.Materials - b._count.Materials
+            } else if (sortField === "updatedAt") {
+                comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
             }
 
             return sortDirection === "asc" ? comparison : -comparison
@@ -153,11 +155,17 @@ export function CharacteristicManagement() {
             key: "materialsCount",
             header: t("columns.materials"),
             cell: (characteristic) => characteristic._count.Materials,
+            sortable: true,
+            onSort: () => handleSort("materialsCount"),
+            sortDirection: sortField === "materialsCount" ? sortDirection : null,
         },
         {
             key: "updatedAt",
             header: t("columns.updatedAt"),
             cell: (characteristic) => formatDate(characteristic.updatedAt, "HH:mm - PPP", currentLocale as "en" | "fr"),
+            sortable: true,
+            onSort: () => handleSort("updatedAt"),
+            sortDirection: sortField === "updatedAt" ? sortDirection : null,
         },
         {
             key: "actions",
