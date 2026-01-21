@@ -164,10 +164,65 @@ export function MaterialManagement() {
         {
             key: "tags",
             header: t("columns.tags"),
-            cell: (material) => (
-                <div className="flex flex-wrap gap-1">
-                    {material.Tags.length > 0 ? (
-                        material.Tags.map((tag) => (
+            cell: (material) => {
+                if (material.Tags.length === 0) {
+                    return <span className="text-muted-foreground">{tCommon("none")}</span>
+                }
+
+                // Si plus de 3 tags, afficher les 3 premiers et mettre le reste dans un HoverCard
+                if (material.Tags.length > 3) {
+                    const visibleTags = material.Tags.slice(0, 3)
+                    const hiddenTags = material.Tags.slice(3)
+                    const remainingCount = hiddenTags.length
+
+                    return (
+                        <div className="flex flex-wrap gap-1 items-center">
+                            <HoverCard>
+                                <HoverCardTrigger asChild>
+                                    <div className="flex flex-wrap gap-1">
+                                        {visibleTags.map((tag) => (
+                                            <Badge
+                                                key={tag.id}
+                                                style={{
+                                                    backgroundColor: tag.color,
+                                                    color: tag.fontColor,
+                                                }}
+                                            >
+                                                {tag.name}
+                                            </Badge>
+                                        ))}
+                                        <Badge
+                                            variant="outline"
+                                            className="cursor-pointer hover:bg-muted"
+                                        >
+                                            +{remainingCount}
+                                        </Badge>
+                                    </div>
+                                </HoverCardTrigger>
+                                <HoverCardContent className="w-xs">
+                                    <div className="flex flex-wrap gap-2">
+                                        {material.Tags.map((tag) => (
+                                            <Badge
+                                                key={tag.id}
+                                                style={{
+                                                    backgroundColor: tag.color,
+                                                    color: tag.fontColor,
+                                                }}
+                                            >
+                                                {tag.name}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </HoverCardContent>
+                            </HoverCard>
+                        </div>
+                    )
+                }
+
+                // Si 3 tags ou moins, afficher tous les tags normalement
+                return (
+                    <div className="flex flex-wrap gap-1">
+                        {material.Tags.map((tag) => (
                             <Badge
                                 key={tag.id}
                                 style={{
@@ -177,12 +232,10 @@ export function MaterialManagement() {
                             >
                                 {tag.name}
                             </Badge>
-                        ))
-                    ) : (
-                        <span className="text-muted-foreground">{tCommon("none")}</span>
-                    )}
-                </div>
-            ),
+                        ))}
+                    </div>
+                )
+            },
         },
         {
             key: "updatedAt",
