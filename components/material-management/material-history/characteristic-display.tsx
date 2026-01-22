@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FilePreviewDialog } from "@/components/ui/file-preview-dialog"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import {
     CharacteristicHistory,
@@ -35,7 +34,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
-import { useState } from "react"
+import React, { useState } from "react"
 
 const getFileIcon = (fileName: string) => {
     const extension = fileName.split(".").pop()?.toLowerCase() || ""
@@ -164,39 +163,51 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
         setPreviewDialogOpen(true)
     }
 
-    const renderCharacteristicValue = () => {
+    const renderCharacteristicValue = (showLabel: Boolean = true) => {
+        // Helper function to wrap content with label if needed
+        const wrapWithLabel = (content: React.ReactNode) => {
+            if (!showLabel) {
+                return content
+            }
+            return (
+                <div className="grid grid-cols-4 gap-1 font-medium">
+                    <span className="text-sm">{characteristic.name} :</span>
+                    <div className="col-span-3">{content}</div>
+                </div>
+            )
+        }
+
         if (characteristic.value === null || characteristic.value === undefined) {
-            return <span className="text-muted-foreground">N/A</span>
+            return wrapWithLabel(<span className="text-muted-foreground">N/A</span>)
         }
 
         // Basic text types (string value)
         if (
             isStringType(characteristic) &&
-            (characteristic.type === "text" || characteristic.type === "number" || characteristic.type === "float")
+            (characteristic.type === "text" || characteristic.type === "number" || characteristic.type === "float" || characteristic.type === "textarea")
         ) {
-            return <span>{characteristic.value}</span>
+            return <div className="grid grid-cols-4 gap-1 font-medium">
+                {showLabel && <span className="text-sm">{characteristic.name} :</span>}
+                <span className="text-sm col-span-3">{characteristic.value}</span>
+            </div>
         }
-
-        // Textarea (formatted string)
-        if (isStringType(characteristic) && characteristic.type === "textarea") {
-            return (
-                <div className="whitespace-pre-wrap bg-muted/50 p-2 rounded-md text-sm">
-                    {characteristic.value}
-                </div>
-            )
-        }
-
         // Boolean value
         if (isBooleanType(characteristic)) {
             return characteristic.value ? (
-                <div className="flex items-center gap-1 text-green-600">
-                    <Check className="h-4 w-4" />
-                    <span>{tCommon("yes")}</span>
+                <div className="grid grid-cols-4 gap-1 font-medium">
+                    {showLabel && <span className="text-sm">{characteristic.name} :</span>}
+                    <span className="flex items-center gap-1 text-green-600 col-span-3">
+                        <Check className="h-4 w-4" />
+                        {tCommon("yes")}
+                    </span>
                 </div>
             ) : (
-                <div className="flex items-center gap-1 text-red-600">
-                    <X className="h-4 w-4" />
-                    <span>{tCommon("no")}</span>
+                    <div className="grid grid-cols-4 gap-1 font-medium">
+                        {showLabel && <span className="text-sm">{characteristic.name} :</span>}
+                        <span className="flex items-center gap-1 text-red-600 col-span-3">
+                            <X className="h-4 w-4" />
+                            {tCommon("no")}
+                        </span>
                 </div>
             )
         }
@@ -205,13 +216,15 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
         if (isDateType(characteristic)) {
             const dateValue = characteristic.value.date ? new Date(characteristic.value.date) : null
 
-            return dateValue ? (
-                <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{format(dateValue, characteristic.type === "dateHour" ? "PPp" : "PPP")}</span>
-                </div>
-            ) : (
-                <span className="text-muted-foreground">N/A</span>
+            return wrapWithLabel(
+                dateValue ? (
+                    <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{format(dateValue, characteristic.type === "dateHour" ? "PPp" : "PPP")}</span>
+                    </div>
+                ) : (
+                    <span className="text-muted-foreground">N/A</span>
+                ),
             )
         }
 
@@ -220,30 +233,32 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
             const fromDate = characteristic.value.from ? new Date(characteristic.value.from) : null
             const toDate = characteristic.value.to ? new Date(characteristic.value.to) : null
 
-            return fromDate && toDate ? (
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>
-                            {tCommon("from")}:{" "}
-                            {format(fromDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP")}
-                        </span>
+            return wrapWithLabel(
+                fromDate && toDate ? (
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                                {tCommon("from")}:{" "}
+                                {format(fromDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP")}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2 ml-6">
+                            <span>
+                                {tCommon("to")}:{" "}
+                                {format(toDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP")}
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-6">
-                        <span>
-                            {tCommon("to")}:{" "}
-                            {format(toDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP")}
-                        </span>
-                    </div>
-                </div>
-            ) : (
-                <span className="text-muted-foreground">N/A</span>
+                ) : (
+                    <span className="text-muted-foreground">N/A</span>
+                ),
             )
         }
 
         // Link value
         if (isStringType(characteristic) && characteristic.type === "link") {
-            return (
+            return wrapWithLabel(
                 <a
                     href={characteristic.value}
                     target="_blank"
@@ -253,20 +268,20 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
                     <Link className="h-4 w-4" />
                     <span>{characteristic.value}</span>
                     <ExternalLink className="h-3 w-3" />
-                </a>
+                </a>,
             )
         }
 
         // Email value
         if (isStringType(characteristic) && characteristic.type === "email") {
-            return (
+            return wrapWithLabel(
                 <a
                     href={`mailto:${characteristic.value}`}
                     className="flex items-center gap-1 text-primary hover:underline"
                 >
                     <Mail className="h-4 w-4" />
                     <span>{characteristic.value}</span>
-                </a>
+                </a>,
             )
         }
 
@@ -275,7 +290,7 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
             isMultiSelectType(characteristic) &&
             (characteristic.type === "select" || characteristic.type === "radio")
         ) {
-            return <span>{characteristic.value}</span>
+            return wrapWithLabel(<span>{characteristic.value}</span>)
         }
 
         // Checkbox (boolean displayed as text)
@@ -284,22 +299,24 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
                 ? characteristic.value[0] === "true"
                 : String(characteristic.value) === "true"
 
-            return checkboxValue ? (
-                <div className="flex items-center gap-1 text-green-600">
-                    <Check className="h-4 w-4" />
-                    <span>{tCommon("yes")}</span>
-                </div>
-            ) : (
-                <div className="flex items-center gap-1 text-red-600">
-                    <X className="h-4 w-4" />
-                    <span>{tCommon("no")}</span>
-                </div>
+            return wrapWithLabel(
+                checkboxValue ? (
+                    <div className="flex items-center gap-1 text-green-600">
+                        <Check className="h-4 w-4" />
+                        <span>{tCommon("yes")}</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-1 text-red-600">
+                        <X className="h-4 w-4" />
+                        <span>{tCommon("no")}</span>
+                    </div>
+                ),
             )
         }
 
         // MultiSelect (array of values)
         if (isMultiSelectType(characteristic) && characteristic.type === "multiSelect") {
-            return (
+            return wrapWithLabel(
                 <div className="flex flex-wrap gap-1">
                     {Array.isArray(characteristic.value) &&
                         characteristic.value.map((item, index) => (
@@ -310,13 +327,13 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
                                 {item}
                             </Badge>
                         ))}
-                </div>
+                </div>,
             )
         }
 
         // MultiText / MultiTextArea
         if (isMultiTextType(characteristic)) {
-            return (
+            return wrapWithLabel(
                 <div className="flex flex-col gap-2 w-full">
                     {characteristic.value.multiText.map((item, index) => (
                         <Card
@@ -336,13 +353,13 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
                             </CardContent>
                         </Card>
                     ))}
-                </div>
+                </div>,
             )
         }
 
         // File type
         if (isFileType(characteristic)) {
-            return (
+            return wrapWithLabel(
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
                     {characteristic.value.file.map((file, index) => {
                         const fileUrl = `/api/image/path/${file.path.replaceAll("\\", "/")}`
@@ -420,24 +437,17 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
                             </div>
                         )
                     })}
-                </div>
+                </div>,
             )
         }
 
         // Default fallback for unexpected types
-        return <span>{JSON.stringify(characteristic.value)}</span>
+        return wrapWithLabel(<span>{JSON.stringify(characteristic.value)}</span>)
     }
 
     return (
-        <div className="flex flex-col gap-1 w-full">
-            {showLabel && (
-                <>
-                    <span className="text-sm font-medium">{characteristic.name}</span>
-                    <Separator className="my-1" />
-                </>
-            )}
-
-            <div className="py-1">{renderCharacteristicValue()}</div>
+        <div className="flex flex-col w-full">
+            <div>{renderCharacteristicValue(showLabel)}</div>
 
             {/* File Preview Dialog */}
             {previewFile && (
