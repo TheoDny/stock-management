@@ -246,29 +246,14 @@ export function handleActionResult<T = unknown>(
             .map(([field, errors]) => {
                 // Handle array of strings
                 if (Array.isArray(errors) && errors.length > 0) {
-                    const errorMessage = errors[0] as string
-
-                    // Try to detect error type from message
-                    let errorType: string | null = null
-                    const lowerMessage = errorMessage.toLowerCase()
-                    if (lowerMessage.includes("at least")) {
-                        errorType = "min"
-                    } else if (lowerMessage.includes("at most") || lowerMessage.includes("valid")) {
-                        errorType = "max"
-                    } else if (lowerMessage.includes("required")) {
-                        errorType = "required"
-                    }
-
+                    const errorCodeOrMessage = errors[0] as string
                     // Try to get translated error message
-                    if (t && errorTranslationKey && errorType) {
-                        const translatedError = t(`${errorTranslationKey}.${field}.${errorType}`)
-                        if (translatedError && translatedError !== `${errorTranslationKey}.${field}.${errorType}`) {
-                            return translatedError
-                        }
+                    if (t) {
+                        return t(errorCodeOrMessage)
                     }
 
                     // Fallback to original error message
-                    return errorMessage
+                    return errorCodeOrMessage
                 }
 
                 // Handle object with _errors array

@@ -328,6 +328,7 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                 })
             }
 
+            //@ts-ignore
             const success = handleActionResult(result, {
                 t,
                 errorTranslationKey: "error",
