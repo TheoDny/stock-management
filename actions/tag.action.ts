@@ -10,10 +10,10 @@ const createTagSchema = z.object({
     name: z
         .string()
         .trim()
-        .min(2, "Name must be at least 2 characters")
-        .max(64, "Name must be at most 64 characters"),
-    color: z.string().trim().max(7, "Color must be a valid hex color code"),
-    fontColor: z.string().trim().max(7, "Font color must be a valid hex color code"),
+        .min(2, "name.min")
+        .max(64, "name.max"),
+    color: z.string().trim().length(7, "color"),
+    fontColor: z.string().trim().length(7, "fontColor"),
 })
 
 // Schema for updating a tag
@@ -22,14 +22,14 @@ const updateTagSchema = z.object({
     name: z
         .string()
         .trim()
-        .min(2, "Name must be at least 2 characters")
-        .max(64, "Name must be at most 64 characters"),
-    color: z.string().trim().max(7, "Color must be a valid hex color code"),
-    fontColor: z.string().trim().max(7, "Font color must be a valid hex color code"),
+        .min(2, "name.min")
+        .max(64, "name.max"),
+    color: z.string().trim().length(7).catch("color"),
+    fontColor: z.string().trim().length(7).catch("fontColor"),
 })
 
 const deleteTagSchema = z.object({
-    id: z.string().trim(),
+    id: z.string().trim().catch("id"),
 })
 
 // Get all tags with material count
@@ -48,23 +48,17 @@ export async function getTagsAction() {
 
 // Create a new tag
 export const createTagAction = actionClient.schema(createTagSchema).action(async ({ parsedInput }) => {
-    try {
-        // Check for tag_create permission
-        const session = await checkAuth({ requiredPermission: "tag_create" })
+    // Check for tag_create permission
+    const session = await checkAuth({ requiredPermission: "tag_create" })
 
-        return await createTag({
-            ...parsedInput,
-            entityId: session.user.entitySelectedId,
-        })
-    } catch (error) {
-        console.error("Failed to create tag:", error)
-        throw new Error("Failed to create tag")
-    }
+    return await createTag({
+        ...parsedInput,
+        entityId: session.user.entitySelectedId,
+    })
 })
 
 // Update an existing tag
 export const updateTagAction = actionClient.schema(updateTagSchema).action(async ({ parsedInput }) => {
-    try {
         // Check for tag_edit permission
         const session = await checkAuth({ requiredPermission: "tag_edit" })
 
@@ -77,23 +71,14 @@ export const updateTagAction = actionClient.schema(updateTagSchema).action(async
         })
 
         return tag
-    } catch (error) {
-        console.error("Failed to update tag:", error)
-        throw new Error("Failed to update tag")
-    }
 })
 
 // Delete a tag
 export const deleteTagAction = actionClient.schema(deleteTagSchema).action(async ({ parsedInput }) => {
-    try {
         // Check for tag_create permission (same as creating since it's a destructive action)
         const session = await checkAuth({ requiredPermission: "tag_create" })
 
         const { id } = parsedInput
 
         return await deleteTag(id, session.user.entitySelectedId)
-    } catch (error) {
-        console.error("Failed to delete tag:", error)
-        throw new Error("Failed to delete tag")
-    }
 })

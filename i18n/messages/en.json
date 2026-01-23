@@ -117,7 +117,20 @@
                 "deleteSuccess": "Tag deleted successfully",
                 "createError": "Error while creating tag",
                 "updateError": "Error while updating tag",
-                "deleteError": "Error while deleting tag"
+                "deleteError": "Error while deleting tag",
+                "error": {
+                    "tagHasMaterials": "Cannot delete a tag that is used by materials",
+                    "name": {
+                        "min": "Name must be at least 2 characters",
+                        "max": "Name must be at most 64 characters"
+                    },
+                    "color": {
+                        "max": "Color must be a valid hex color code"
+                    },
+                    "fontColor": {
+                        "max": "Font color must be a valid hex color code"
+                    }
+                }
             }
         }
     },

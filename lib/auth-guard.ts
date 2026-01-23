@@ -1,5 +1,7 @@
 "use server"
 
+import { UnauthorizedMissingPermission } from "@/errors/UnauthorizedMissingPermission"
+import { UnauthorizedNoActiveSessionError } from "@/errors/UnauthorizedNoActiveSessionError"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 
@@ -17,7 +19,7 @@ export async function checkAuth(options: AuthGuardOptions = {}) {
 
     // Check if session exists
     if (!session || !session.user.active) {
-        throw new Error("Unauthorized: No active session")
+        throw new UnauthorizedNoActiveSessionError("Unauthorized: No active session")
     }
 
     // If a specific permission is required, check for it
@@ -25,7 +27,7 @@ export async function checkAuth(options: AuthGuardOptions = {}) {
         const hasPermission = session.user.Permissions.some((permission) => permission.code === requiredPermission)
 
         if (!hasPermission) {
-            throw new Error(`Unauthorized: Missing permission ${requiredPermission}`)
+            throw new UnauthorizedMissingPermission(`Unauthorized: Missing permission ${requiredPermission}`)
         }
     }
 

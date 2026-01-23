@@ -117,7 +117,17 @@
                 "deleteSuccess": "Tag supprimé avec succès",
                 "createError": "Erreur lors de la création du tag",
                 "updateError": "Erreur lors de la mise à jour du tag",
-                "deleteError": "Erreur lors de la suppression du tag"
+                "deleteError": "Erreur lors de la suppression du tag",
+                "error": {
+                    "tagHasMaterials": "Impossible de supprimer un tag utilisé par du matériel",
+                    "name": {
+                        "min": "Le nom doit contenir au moins 2 caractères",
+                        "max": "Le nom doit contenir au plus 64 caractères"
+                    },
+                    "color": "La couleur doit être un code hexadécimal valide",
+                    "fontColor": "La couleur du texte doit être un code hexadécimal valide"                    ,
+                    "id": "L'ID du tag correcte est requis"
+                }
             }
         }
     },

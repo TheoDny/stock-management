@@ -1,3 +1,5 @@
+import { DeleteTagUsedByMaterialsError } from "@/errors/DeleteTagUsedByMaterialsError"
+import { NotFoundTagError } from "@/errors/NotFoundTagError"
 import { prisma } from "@/lib/prisma"
 import { addTagCreateLog, addTagDeleteLog, addTagUpdateLog } from "@/services/log.service"
 import { createMaterialHistory } from "@/services/material-history.service"
@@ -11,7 +13,6 @@ type TagUpdateData = {
 
 // Get all tags with material count
 export async function getTags(entityId: string) {
-    try {
         const tags = await prisma.tag.findMany({
             include: {
                 _count: {
@@ -27,15 +28,10 @@ export async function getTags(entityId: string) {
         })
 
         return tags
-    } catch (error) {
-        console.error("Failed to fetch tags:", error)
-        throw new Error("Failed to fetch tags")
-    }
 }
 
 // Create a new tag
 export async function createTag(data: { name: string; fontColor: string; color: string; entityId: string }) {
-    try {
         const tag = await prisma.tag.create({
             data,
         })
@@ -45,15 +41,10 @@ export async function createTag(data: { name: string; fontColor: string; color: 
 
         revalidatePath("/dashboard/tags")
         return tag
-    } catch (error) {
-        console.error("Failed to create tag:", error)
-        throw new Error("Failed to create tag")
-    }
 }
 
 // Update an existing tag
 export async function updateTag(id: string, entityId: string, data: TagUpdateData) {
-    try {
         // First get the tag to access its name and related materials
         const existingTag = await prisma.tag.findUnique({
             where: { id },
@@ -70,7 +61,7 @@ export async function updateTag(id: string, entityId: string, data: TagUpdateDat
         })
 
         if (!existingTag) {
-            throw new Error("Tag not found")
+            throw new NotFoundTagError("Tag not found")
         }
 
         const tag = await prisma.tag.update({
@@ -91,16 +82,10 @@ export async function updateTag(id: string, entityId: string, data: TagUpdateDat
 
         revalidatePath("/configuration/tags")
         return tag
-    } catch (error) {
-        console.error("Failed to update tag:", error)
-        throw new Error("Failed to update tag")
-    }
 }
 
 // Delete a tag
-export async function deleteTag(id: string, entityId: string) {
-    try {
-        // Check if the tag is used by any materials
+export async function deleteTag(id: string, entityId: string) {     // Check if the tag is used by any materials
         const materialCount = await prisma.material.count({
             where: {
                 Tags: {
@@ -112,7 +97,7 @@ export async function deleteTag(id: string, entityId: string) {
         })
 
         if (materialCount > 0) {
-            throw new Error("Cannot delete tag used by materials")
+            throw new DeleteTagUsedByMaterialsError("Cannot delete tag used by materials")
         }
 
         const tag = await prisma.tag.delete({
@@ -128,8 +113,4 @@ export async function deleteTag(id: string, entityId: string) {
         
         revalidatePath("/configuration/tags")
         return tag
-    } catch (error) {
-        console.error("Failed to delete tag:", error)
-        throw new Error("Failed to delete tag")
-    }
 }

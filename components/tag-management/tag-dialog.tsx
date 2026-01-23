@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { handleActionResult } from "@/lib/utils.client"
 import { TagAndCountMaterial } from "@/types/tag.type"
 
 const createTagSchema = z.object({
@@ -112,28 +113,37 @@ export function TagDialog({ open, tag, onClose }: TagDialogProps) {
         setIsSubmitting(true)
 
         try {
+            let result
             if (isEditing && tag) {
                 // Update existing tag
                 const updateValues = values as UpdateTagFormValues
-                await updateTagAction({
+                result = await updateTagAction({
                     id: tag.id,
                     name: updateValues.name,
                     fontColor: updateValues.fontColor,
                     color: updateValues.color,
                 })
-                toast.success(t("updateSuccess"))
             } else {
                 // Create new tag
                 const createValues = values as CreateTagFormValues
-                await createTagAction({
+                result = await createTagAction({
                     name: createValues.name,
                     fontColor: createValues.fontColor,
                     color: createValues.color,
                 })
-                toast.success(t("createSuccess"))
             }
 
-            handleClose(true)
+            const success = handleActionResult(result, {
+                t,
+                errorTranslationKey: "error",
+                defaultServerErrorMessage: isEditing ? t("updateError") : t("createError"),
+                defaultValidationErrorMessage: isEditing ? t("updateError") : t("createError"),
+                successMessage: isEditing ? t("updateSuccess") : t("createSuccess"),
+            })
+
+            if (success) {
+                handleClose(true)
+            }
         } catch (error) {
             console.error(error)
             toast.error(isEditing ? t("updateError") : t("createError"))
@@ -146,24 +156,29 @@ export function TagDialog({ open, tag, onClose }: TagDialogProps) {
         if (!tag || !canDelete) return
 
         setIsSubmitting(true)
-        const result = await deleteTagAction({
-            id: tag.id,
-        })
-        setIsSubmitting(true)
 
-        if (result?.serverError) {
-            console.error(result?.serverError)
-            return toast.error(t("deleteError"))
-        } else if (result?.validationErrors) {
-            console.error(result?.validationErrors)
-            return toast.error(t("deleteError"))
-        } else if (!result?.data) {
-            console.error("No data returned")
-            return toast.error(t("deleteError"))
+        try {
+            const result = await deleteTagAction({
+                id: tag.id,
+            })
+
+            const success = handleActionResult(result, {
+                t,
+                errorTranslationKey: "error",
+                defaultServerErrorMessage: t("deleteError"),
+                defaultValidationErrorMessage: t("deleteError"),
+                successMessage: t("deleteSuccess"),
+            })
+
+            if (success) {
+                handleClose(true)
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error(t("deleteError"))
+        } finally {
+            setIsSubmitting(false)
         }
-
-        toast.success(t("deleteSuccess"))
-        handleClose(true)
     }
 
     const getPreviewBadge = () => {
