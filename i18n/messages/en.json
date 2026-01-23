@@ -59,7 +59,21 @@
                 "deleteSuccess": "Characteristic deleted successfully",
                 "createError": "Error while creating characteristic",
                 "updateError": "Error while updating characteristic",
-                "deleteError": "Error while deleting characteristic"
+                "deleteError": "Error while deleting characteristic",
+                "error": {
+                    "characteristicHasMaterials": "Cannot delete a characteristic that is used by materials",
+                    "characteristicNotFound": "Characteristic not found",
+                    "name": {
+                        "min": "Name must be at least 2 characters",
+                        "max": "Name must be at most 64 characters"
+                    },
+                    "description": {
+                        "max": "Description must be at most 255 characters"
+                    },
+                    "type": "The characteristic type is required",
+                    "units": "The characteristic units are required",
+                    "id": "The characteristic ID is required"
+                }
             },
             "types": {
                 "boolean": "Boolean",

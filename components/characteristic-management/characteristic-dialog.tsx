@@ -36,7 +36,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { getTypeColor } from "@/lib/utils.client"
+import { getTypeColor, handleActionResult } from "@/lib/utils.client"
 import { CharacteristicType } from "@/prisma/generated/browser"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
 
@@ -295,28 +295,16 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
         setIsSubmitting(true)
 
         try {
+            let result
             if (isEditing && characteristic) {
                 // Update existing characteristic
                 const updateValues = values as UpdateCharacteristicFormValues
-                const result = await updateCharacteristicAction({
+                result = await updateCharacteristicAction({
                     id: characteristic.id,
                     name: updateValues.name,
                     description: updateValues.description || "",
                     options: optionItems.length > 0 ? optionItems : null,
                 })
-
-                if (result?.serverError) {
-                    console.error(result?.serverError)
-                    return toast.error(t("updateError"))
-                } else if (result?.validationErrors) {
-                    console.error(result?.validationErrors)
-                    return toast.error(t("updateError"))
-                } else if (!result?.data) {
-                    console.error("No data returned")
-                    return toast.error(t("updateError"))
-                }
-
-                toast.success(t("updateSuccess"))
             } else {
                 // Create new characteristic
                 const createValues = values as CreateCharacteristicFormValues
@@ -331,17 +319,26 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                     return
                 }
 
-                await createCharacteristicAction({
+                result = await createCharacteristicAction({
                     name: createValues.name,
                     description: createValues.description || "",
                     type: createValues.type,
                     options: optionItems.length > 0 ? optionItems : null,
                     units: createValues.units || null,
                 })
-                toast.success(t("createSuccess"))
             }
 
-            handleClose(true)
+            const success = handleActionResult(result, {
+                t,
+                errorTranslationKey: "error",
+                defaultServerErrorMessage: isEditing ? t("updateError") : t("createError"),
+                defaultValidationErrorMessage: isEditing ? t("updateError") : t("createError"),
+                successMessage: isEditing ? t("updateSuccess") : t("createSuccess"),
+            })
+
+            if (success) {
+                handleClose(true)
+            }
         } catch (error) {
             console.error(error)
             toast.error(isEditing ? t("updateError") : t("createError"))
@@ -353,22 +350,26 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
     const handleDelete = async () => {
         if (!characteristic || !canDelete) return
 
-        const result = await deleteCharacteristicAction({
-            id: characteristic.id,
-        })
+        try {
+            const result = await deleteCharacteristicAction({
+                id: characteristic.id,
+            })
 
-        if (result?.serverError) {
-            console.error(result?.serverError)
-            return toast.error(t("deleteError"))
-        } else if (result?.validationErrors) {
-            console.error(result?.validationErrors)
-            return toast.error(t("deleteError"))
-        } else if (!result?.data) {
-            console.error("No data returned")
-            return toast.error(t("deleteError"))
+            const success = handleActionResult(result, {
+                t,
+                errorTranslationKey: "error",
+                defaultServerErrorMessage: t("deleteError"),
+                defaultValidationErrorMessage: t("deleteError"),
+                successMessage: t("deleteSuccess"),
+            })
+
+            if (success) {
+                handleClose(true)
+            }
+        } catch (error) {
+            console.error(error)
+            toast.error(t("deleteError"))
         }
-        toast.success(t("deleteSuccess"))
-        handleClose(true)
     }
 
     const selectedType = createForm.watch("type")

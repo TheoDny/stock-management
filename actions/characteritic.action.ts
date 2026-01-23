@@ -16,9 +16,9 @@ const createCharacteristicSchema = z.object({
     name: z
         .string()
         .trim()
-        .min(2, "Name must be at least 2 characters")
-        .max(64, "Name must be at most 64 characters"),
-    description: z.string().trim().max(255, "Description must be at most 255 characters").optional(),
+        .min(2, "name.min")
+        .max(64, "name.max"),
+    description: z.string().trim().max(255, "description.max").optional(),
     type: z.enum(CharacteristicType),
     options: z.array(z.string().trim()).nullable(),
     units: z.string().trim().nullable(),
@@ -26,89 +26,69 @@ const createCharacteristicSchema = z.object({
 
 // Schema for updating a characteristic
 const updateCharacteristicSchema = z.object({
-    id: z.string(),
+    id: z.string().catch("id"),
     name: z
         .string()
         .trim()
-        .min(2, "Name must be at least 2 characters")
-        .max(64, "Name must be at most 64 characters"),
-    description: z.string().trim().max(255, "Description must be at most 255 characters"),
+        .min(2, "name.min")
+        .max(64, "name.max"),
+    description: z.string().trim().max(255, "description.max"),
     options: z.array(z.string().trim()).nullable().optional(),
 })
 
 const deleteCharacteristicSchema = z.object({
-    id: z.string(),
+    id: z.string().catch("id"),
 })
 
 // Get all characteristics
 export async function getCharacteristicsAction() {
-    try {
-        // Basic auth check
-        const session = await checkAuth()
+    // Basic auth check
+    const session = await checkAuth()
 
-        return await getCharacteristics(session.user.entitySelectedId)
-    } catch (error) {
-        console.error("Failed to fetch characteristics:", error)
-        throw new Error("Failed to fetch characteristics")
-    }
+    return await getCharacteristics(session.user.entitySelectedId)
 }
 
 // Create a new characteristic
 export const createCharacteristicAction = actionClient
-    .schema(createCharacteristicSchema)
+    .inputSchema(createCharacteristicSchema)
     .action(async ({ parsedInput }) => {
-        try {
-            const session = await checkAuth({ requiredPermission: "characteristic_create" })
+        const session = await checkAuth({ requiredPermission: "characteristic_create" })
 
-            const { name, description, type, options, units } = parsedInput
+        const { name, description, type, options, units } = parsedInput
 
-            const characteristic = await createCharacteristic({
-                name,
-                description: description || "",
-                type,
-                options,
-                units,
-                entityId: session.user.entitySelectedId,
-            })
+        const characteristic = await createCharacteristic({
+            name,
+            description: description || "",
+            type,
+            options,
+            units,
+            entityId: session.user.entitySelectedId,
+        })
 
-            return characteristic
-        } catch (error) {
-            console.error("Failed to create characteristic:", error)
-            throw new Error("Failed to create characteristic")
-        }
+        return characteristic
     })
 
 // Update an existing characteristic
 export const updateCharacteristicAction = actionClient
-    .schema(updateCharacteristicSchema)
+    .inputSchema(updateCharacteristicSchema)
     .action(async ({ parsedInput }) => {
-        try {
-            const session = await checkAuth({ requiredPermission: "characteristic_edit" })
+        const session = await checkAuth({ requiredPermission: "characteristic_edit" })
 
-            const { id, name, description, options } = parsedInput
+        const { id, name, description, options } = parsedInput
 
-            return await updateCharacteristic(id, session.user.entitySelectedId, {
-                name,
-                description,
-                options: options ?? undefined,
-            })
-        } catch (error) {
-            console.error("Failed to update characteristic:", error)
-            throw new Error("Failed to update characteristic")
-        }
+        return await updateCharacteristic(id, session.user.entitySelectedId, {
+            name,
+            description,
+            options: options ?? undefined,
+        })
     })
 
 export const deleteCharacteristicAction = actionClient
-    .schema(deleteCharacteristicSchema)
+    .inputSchema(deleteCharacteristicSchema)
     .action(async ({ parsedInput }) => {
-        try {
-            const session = await checkAuth({ requiredPermission: "characteristic_create" })
+        const session = await checkAuth({ requiredPermission: "characteristic_create" })
 
-            const { id } = parsedInput
+        const { id } = parsedInput
 
-            return await deleteCharacteristic(id, session.user.entitySelectedId)
-        } catch (error) {
-            console.error("Failed to delete characteristic:", error)
-            throw new Error("Failed to delete characteristic")
-        }
+        return await deleteCharacteristic(id, session.user.entitySelectedId)
     })

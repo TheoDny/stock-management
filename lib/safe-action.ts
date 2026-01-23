@@ -14,4 +14,10 @@ export const actionClient = createSafeActionClient({
     },
 })
 
-const HandleServerError = new Set(["DeleteRoleUserAssignedError", "DeleteTagUsedByMaterialsError"])
+const HandleServerError = new Set([
+    "DeleteRoleUserAssignedError",
+    "DeleteTagUsedByMaterialsError",
+    "DeleteCharacteristicUsedByMaterialsError",
+    "NotFoundTagError",
+    "NotFoundCharacteristicError",
+])

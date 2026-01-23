@@ -34,16 +34,11 @@ const deleteTagSchema = z.object({
 
 // Get all tags with material count
 export async function getTagsAction() {
-    try {
-        // Auth check for basic session validation
-        const session = await checkAuth()
+    // Auth check for basic session validation
+    const session = await checkAuth()
 
-        const tags = await getTags(session.user.entitySelectedId)
-        return tags
-    } catch (error) {
-        console.error("Failed to fetch tags:", error)
-        throw new Error("Failed to fetch tags")
-    }
+    const tags = await getTags(session.user.entitySelectedId)
+    return tags
 }
 
 // Create a new tag
@@ -59,26 +54,26 @@ export const createTagAction = actionClient.schema(createTagSchema).action(async
 
 // Update an existing tag
 export const updateTagAction = actionClient.schema(updateTagSchema).action(async ({ parsedInput }) => {
-        // Check for tag_edit permission
-        const session = await checkAuth({ requiredPermission: "tag_edit" })
+    // Check for tag_edit permission
+    const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-        const { id, name, color, fontColor } = parsedInput
+    const { id, name, color, fontColor } = parsedInput
 
-        const tag = await updateTag(id, session.user.entitySelectedId, {
-            name,
-            color,
-            fontColor,
-        })
+    const tag = await updateTag(id, session.user.entitySelectedId, {
+        name,
+        color,
+        fontColor,
+    })
 
-        return tag
+    return tag
 })
 
 // Delete a tag
 export const deleteTagAction = actionClient.schema(deleteTagSchema).action(async ({ parsedInput }) => {
-        // Check for tag_create permission (same as creating since it's a destructive action)
-        const session = await checkAuth({ requiredPermission: "tag_create" })
+    // Check for tag_create permission (same as creating since it's a destructive action)
+    const session = await checkAuth({ requiredPermission: "tag_create" })
 
-        const { id } = parsedInput
+    const { id } = parsedInput
 
-        return await deleteTag(id, session.user.entitySelectedId)
+    return await deleteTag(id, session.user.entitySelectedId)
 })

@@ -59,7 +59,21 @@
                 "deleteSuccess": "Caractéristique supprimée avec succès",
                 "createError": "Erreur lors de la création de la caractéristique",
                 "updateError": "Erreur lors de la mise à jour de la caractéristique",
-                "deleteError": "Erreur lors de la suppression de la caractéristique"
+                "deleteError": "Erreur lors de la suppression de la caractéristique",
+                "error": {
+                    "characteristicHasMaterials": "Impossible de supprimer une caractéristique utilisée par du matériel",
+                    "characteristicNotFound": "Caractéristique introuvable",
+                    "name": {
+                        "min": "Le nom doit contenir au moins 2 caractères",
+                        "max": "Le nom doit contenir au plus 64 caractères"
+                    },
+                    "description": {
+                        "max": "La description doit contenir au plus 255 caractères"
+                    },
+                    "type": "Le type de caractéristique est requis",
+                    "units": "L'unité de la caractéristique est requise",
+                    "id": "L'ID de la caractéristique correcte est requis"
+                }
             },
             "types": {
                 "boolean": "Booléen",
