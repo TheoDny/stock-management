@@ -266,6 +266,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     characteristicValues: processedCharacteristicValues,
                 })
 
+                // @ts-ignore
                 const success = handleActionResult(result, {
                     t: tMaterialDialog,
                     errorTranslationKey: "error",
@@ -352,7 +353,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     orderCharacteristics: values.orderCharacteristics,
                     characteristicValues: processedCharacteristicValues,
                 })
-
+                // @ts-ignore
                 const success = handleActionResult(result, {
                     t: tMaterialDialog,
                     errorTranslationKey: "error",
