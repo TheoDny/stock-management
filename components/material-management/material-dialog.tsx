@@ -39,6 +39,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import {
     buildCharacteristicDefaultValue,
+    handleActionResult,
     isCharacteristicValueFile,
     isCharacteristicValueFileClient,
 } from "@/lib/utils.client"
@@ -265,18 +266,17 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     characteristicValues: processedCharacteristicValues,
                 })
 
-                if (result?.serverError) {
-                    console.error(result?.serverError)
-                    return toast.error(tMaterials("errors.updateFailed"))
-                } else if (result?.validationErrors) {
-                    console.error(result?.validationErrors)
-                    return toast.error(tMaterials("errors.updateFailed"))
-                } else if (!result?.data) {
-                    console.error("No data returned")
-                    return toast.error(tMaterials("errors.updateFailed"))
-                }
+                const success = handleActionResult(result, {
+                    t: tMaterialDialog,
+                    errorTranslationKey: "error",
+                    defaultServerErrorMessage: tMaterials("errors.updateFailed"),
+                    defaultValidationErrorMessage: tMaterials("errors.updateFailed"),
+                    successMessage: tMaterials("success.updateSuccess"),
+                })
 
-                toast.success(tMaterials("success.updateSuccess"))
+                if (!success) {
+                    return
+                }
             } else {
                 let processedCharacteristicValues = characteristicValues.map((cv) => {
                     // If it's a file characteristic, ensure it's in the proper format for saving
@@ -353,18 +353,17 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     characteristicValues: processedCharacteristicValues,
                 })
 
-                if (result?.serverError) {
-                    console.error(result?.serverError)
-                    return toast.error(tMaterials("errors.createFailed"))
-                } else if (result?.validationErrors) {
-                    console.error(result?.validationErrors)
-                    return toast.error(tMaterials("errors.createFailed"))
-                } else if (!result?.data) {
-                    console.error("No data returned")
-                    return toast.error(tMaterials("errors.createFailed"))
-                }
+                const success = handleActionResult(result, {
+                    t: tMaterialDialog,
+                    errorTranslationKey: "error",
+                    defaultServerErrorMessage: tMaterials("errors.createFailed"),
+                    defaultValidationErrorMessage: tMaterials("errors.createFailed"),
+                    successMessage: tMaterials("success.createSuccess"),
+                })
 
-                toast.success(tMaterials("success.createSuccess"))
+                if (!success) {
+                    return
+                }
             }
 
             handleClose(true)

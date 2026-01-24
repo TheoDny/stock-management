@@ -13,8 +13,8 @@ import { z } from "zod"
 
 // Schema for creating a material with file upload
 const createMaterialSchema = z.object({
-    name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim().max(255, "Description must be at most 255 characters").default(""),
+    name: z.string().trim().min(2, "name.min").max(64,"name.max"),
+    description: z.string().trim().max(255, "description.max").default(""),
     tagIds: z.array(z.string()).default([]),
     orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z
@@ -50,8 +50,8 @@ const createMaterialSchema = z.object({
 // Schema for updating a material
 const updateMaterialSchema = z.object({
     id: z.string(),
-    name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim().max(255, "Description must be at most 255 characters").default(""),
+    name: z.string().trim().min(2, "name.min").max(64,"name.max"),
+    description: z.string().trim().max(255, "description.max").default(""),
     tagIds: z.array(z.string()).default([]),
     orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z
@@ -86,83 +86,58 @@ const updateMaterialSchema = z.object({
 })
 
 const getMaterialSchema = z.object({
-    id: z.string(),
+    id: z.string().catch("id"),
 })
 
 // Get all materials with their tags and characteristic count
 export async function getMaterialsAction() {
-    try {
-        // Basic auth check
-        const session = await checkAuth()
+    // Basic auth check
+    const session = await checkAuth()
 
-        return await getMaterials(session.user.entitySelectedId)
-    } catch (error) {
-        console.error("Failed to fetch materials:", error)
-        throw new Error("Failed to fetch materials")
-    }
+    return await getMaterials(session.user.entitySelectedId)
 }
 
-export const getMaterialAction = actionClient.schema(getMaterialSchema).action(async ({ parsedInput }) => {
-    try {
-        // Basic auth check
-        await checkAuth()
+export const getMaterialAction = actionClient.inputSchema(getMaterialSchema).action(async ({ parsedInput }) => {
+    // Basic auth check
+    await checkAuth()
 
-        return await getMaterialById(parsedInput.id)
-    } catch (error) {
-        console.error("Failed to fetch material:", error)
-        throw new Error("Failed to fetch material")
-    }
+    return await getMaterialById(parsedInput.id)
 })
 
 // Get material characteristics
 export async function getMaterialCharacteristicsAction(materialId: string) {
-    try {
-        // Basic auth check
-        await checkAuth()
+    // Basic auth check
+    await checkAuth()
 
-        return await getMaterialCharacteristics(materialId)
-    } catch (error) {
-        console.error("Failed to fetch material characteristics:", error)
-        throw new Error("Failed to fetch material characteristics")
-    }
+    return await getMaterialCharacteristics(materialId)
 }
 
 // Create a new material
-export const createMaterialAction = actionClient.schema(createMaterialSchema).action(async ({ parsedInput }) => {
-    try {
-        // We need a custom permission code for materials, but for now we'll use tag_create
-        const session = await checkAuth({ requiredPermission: "material_create" })
+export const createMaterialAction = actionClient.inputSchema(createMaterialSchema).action(async ({ parsedInput }) => {
+    // We need a custom permission code for materials, but for now we'll use tag_create
+    const session = await checkAuth({ requiredPermission: "material_create" })
 
-        return await createMaterial(session.user.entitySelectedId, {
-            name: parsedInput.name,
-            description: parsedInput.description || "",
-            tagIds: parsedInput.tagIds,
-            characteristicValues: parsedInput.characteristicValues,
-            orderCharacteristics: parsedInput.orderCharacteristics,
-        })
-    } catch (error) {
-        console.error("Failed to create material:", error)
-        throw new Error("Failed to create material")
-    }
+    return await createMaterial(session.user.entitySelectedId, {
+        name: parsedInput.name,
+        description: parsedInput.description || "",
+        tagIds: parsedInput.tagIds,
+        characteristicValues: parsedInput.characteristicValues,
+        orderCharacteristics: parsedInput.orderCharacteristics,
+    })
 })
 
 // Update an existing material
-export const updateMaterialAction = actionClient.schema(updateMaterialSchema).action(async ({ parsedInput }) => {
-    try {
-        // We need a custom permission code for materials, but for now we'll use tag_edit
-        const session = await checkAuth({ requiredPermission: "tag_edit" })
+export const updateMaterialAction = actionClient.inputSchema(updateMaterialSchema).action(async ({ parsedInput }) => {
+    // We need a custom permission code for materials, but for now we'll use tag_edit
+    const session = await checkAuth({ requiredPermission: "material_edit" })
 
-        const { id, name, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
+    const { id, name, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
 
-        return await updateMaterial(id, session.user.entitySelectedId, {
-            name,
-            description: description || "",
-            tagIds,
-            characteristicValues,
-            orderCharacteristics,
-        })
-    } catch (error) {
-        console.error("Failed to update material:", error)
-        throw new Error("Failed to update material")
-    }
+    return await updateMaterial(id, session.user.entitySelectedId, {
+        name,
+        description: description || "",
+        tagIds,
+        characteristicValues,
+        orderCharacteristics,
+    })
 })

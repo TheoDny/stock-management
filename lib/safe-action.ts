@@ -20,4 +20,5 @@ const HandleServerError = new Set([
     "DeleteCharacteristicUsedByMaterialsError",
     "NotFoundTagError",
     "NotFoundCharacteristicError",
+    "NotFoundMaterialError",
 ])

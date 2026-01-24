@@ -1,3 +1,4 @@
+import { NotFoundMaterialError } from "@/errors/NotFoundMaterialError"
 import { prisma } from "@/lib/prisma"
 import { FileDb, Material, Material_Characteristic } from "@/prisma/generated/client"
 import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
@@ -42,64 +43,50 @@ const materialImageMaxWidth = { imgMaxWidth: 720, imgMaxHeight: 720 }
 
 // Get all materials with their tags
 export async function getMaterials(entityId: string) {
-    try {
-        const materials = await prisma.material.findMany({
-            where: {
-                entityId,
-            },
-            include: {
-                Tags: true,
-            },
-            orderBy: {
-                updatedAt: "desc",
-            },
-        })
+    const materials = await prisma.material.findMany({
+        where: {
+            entityId,
+            deletedAt: null,
+        },
+        include: {
+            Tags: true,
+        },
+        orderBy: {
+            updatedAt: "desc",
+        },
+    })
 
-        return materials
-    } catch (error) {
-        console.error("Failed to fetch materials:", error)
-        throw new Error("Failed to fetch materials")
-    }
+    return materials
 }
 
 // Get material by ID
 export async function getMaterialById(id: string) {
-    try {
-        const material = await prisma.material.findUnique({
-            where: { id },
-        })
+    const material = await prisma.material.findUnique({
+        where: { id },
+    })
 
-        return material
-    } catch (error) {
-        console.error("Failed to fetch material:", error)
-        throw new Error("Failed to fetch material")
-    }
+    return material
 }
 
 // Get material characteristics
 export async function getMaterialCharacteristics(materialId: string): Promise<MaterialCharacteristic[]> {
-    try {
-        const characteristicValues = await prisma.material_Characteristic.findMany({
-            where: {
-                materialId,
-            },
-            include: {
-                Characteristic: true,
-                File: {
-                    select: {
-                        id: true,
-                        name: true,
-                        type: true,
-                    },
+    const characteristicValues = await prisma.material_Characteristic.findMany({
+        where: {
+            materialId,
+        },
+        include: {
+            Characteristic: true,
+            File: {
+                select: {
+                    id: true,
+                    name: true,
+                    type: true,
                 },
             },
-        })
+        },
+    })
 
-        return characteristicValues as MaterialCharacteristic[]
-    } catch (error) {
-        console.error("Failed to fetch material characteristics:", error)
-        throw new Error("Failed to fetch material characteristics")
-    }
+    return characteristicValues as MaterialCharacteristic[]
 }
 
 // Create a new material
@@ -113,7 +100,6 @@ export async function createMaterial(
         characteristicValues: CreateCharacteristicValueInput[]
     },
 ) {
-    try {
         // Create the material
         const material = await prisma.material.create({
             data: {
@@ -201,10 +187,6 @@ export async function createMaterial(
 
         revalidatePath("/materials")
         return material
-    } catch (error) {
-        console.error("Failed to create material:", error)
-        throw new Error("Failed to create material")
-    }
 }
 
 // Update an existing material
@@ -219,7 +201,6 @@ export async function updateMaterial(
         characteristicValues: UpdateCharacteristicValueInput[]
     },
 ) {
-    try {
         // Get current material to determine if version should be incremented
         const currentMaterial = await prisma.material.findUnique({
             where: { id, entityId },
@@ -234,7 +215,7 @@ export async function updateMaterial(
         })
 
         if (!currentMaterial) {
-            throw new Error("Material not found")
+            throw new NotFoundMaterialError("Material not found")
         }
 
         // Update the material
@@ -387,8 +368,4 @@ export async function updateMaterial(
 
         revalidatePath("/materials")
         return material
-    } catch (error) {
-        console.error("Failed to update material:", error)
-        throw new Error("Failed to update material")
-    }
 }

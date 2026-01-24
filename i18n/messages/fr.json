@@ -543,7 +543,18 @@
             "addCharacteristics": "Ajouter des caractéristiques",
             "tagsUnavailable": "Aucun tag disponible",
             "characteristicsUnavailable": "Aucune caractéristique disponible",
-            "noCharacteristics": "Aucune caractéristique ajoutée"
+            "noCharacteristics": "Aucune caractéristique ajoutée",
+            "error": {
+                "materialNotFound": "Matériel introuvable",
+                "name": {
+                    "min": "Le nom doit contenir au moins 2 caractères",
+                    "max": "Le nom doit contenir au plus 64 caractères"
+                },
+                "description": {
+                    "max": "La description doit contenir au plus 255 caractères"
+                },
+                "id": "Un ID du matériel correcte est requis"
+            }
         },
         "history": {
             "title": "Historique du Matériel",

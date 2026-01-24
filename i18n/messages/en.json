@@ -544,7 +544,18 @@
             "addCharacteristics": "Add characteristics",
             "tagsUnavailable": "No tags available",
             "characteristicsUnavailable": "No characteristics available",
-            "noCharacteristics": "No characteristics added"
+            "noCharacteristics": "No characteristics added",
+            "error": {
+                "materialNotFound": "Material not found",
+                "name": {
+                    "min": "Name must be at least 2 characters",
+                    "max": "Name must be at most 64 characters"
+                },
+                "description": {
+                    "max": "Description must be at most 255 characters"
+                },
+                "id": "A correct material ID is required"
+            }
         },
         "history": {
             "title": "Material History",
