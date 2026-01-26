@@ -1,7 +1,7 @@
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+"use client"
+
+import { Combobox } from "@/components/ui/combobox";
 import { cn } from "@/lib/utils";
-import { useId } from "react";
 
 interface MultiSelectFieldProps {
     value: string[] | string;
@@ -11,32 +11,31 @@ interface MultiSelectFieldProps {
 }
 
 export function MultiSelectField({ value, onChange, options, className }: MultiSelectFieldProps) {
-    const baseId = useId();
-    const selectedValues = Array.isArray(value) ? value : value ? value.split(",") : [];
-    
+    // Convert string[] options to ComboboxOption[]
+    const comboboxOptions = options.map((option) => ({
+        value: option,
+        label: option,
+    }));
+
+    // Normalize value to array
+    const normalizedValue = Array.isArray(value) ? value : value ? value.split(",") : [];
+
+    // Handle onChange to ensure it always receives an array
+    const handleChange = (newValue: string | string[]) => {
+        const arrayValue = Array.isArray(newValue) ? newValue : newValue ? [newValue] : [];
+        onChange(arrayValue);
+    };
+
     return (
-        <div className={cn("space-y-2", className)}>
-            {options?.map((option: string) => (
-                <div
-                    key={option}
-                    className="flex items-center space-x-2"
-                >
-                    <Checkbox
-                        checked={selectedValues.includes(option)}
-                        onCheckedChange={(checked) => {
-                            let newValues;
-                            if (checked) {
-                                newValues = [...selectedValues, option];
-                            } else {
-                                newValues = selectedValues.filter((v: string) => v !== option);
-                            }
-                            onChange(newValues);
-                        }}
-                        id={`${baseId}-${option}`}
-                    />
-                    <Label htmlFor={`${baseId}-${option}`}>{option}</Label>
-                </div>
-            ))}
+        <div className={cn(className)}>
+            <Combobox
+                options={comboboxOptions}
+                value={normalizedValue}
+                onChange={handleChange}
+                multiple={true}
+                placeholder=""
+                emptyMessage="No option found."
+            />
         </div>
     )
 } 

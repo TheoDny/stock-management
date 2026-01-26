@@ -295,22 +295,14 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
 
         // Checkbox (boolean displayed as text)
         if (isMultiSelectType(characteristic) && characteristic.type === "checkbox") {
-            const checkboxValue = Array.isArray(characteristic.value)
-                ? characteristic.value[0] === "true"
-                : String(characteristic.value) === "true"
+            const valueCheckbox = characteristic.value as unknown as { [key: string]: boolean }[]
 
             return wrapWithLabel(
-                checkboxValue ? (
-                    <div className="flex items-center gap-1 text-green-600">
-                        <Check className="h-4 w-4" />
-                        <span>{tCommon("yes")}</span>
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-1 text-red-600">
-                        <X className="h-4 w-4" />
-                        <span>{tCommon("no")}</span>
-                    </div>
-                ),
+                <div className="flex flex-wrap gap-2">
+                    {valueCheckbox.map((item, index) => (
+                        <Badge key={index} variant="outline">{Object.keys(item)[0]}</Badge>
+                    ))}
+                </div>
             )
         }
 
