@@ -240,6 +240,14 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                         }
                     }
 
+                    if (cv.Characteristic.type === "checkbox") {
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value: Array.isArray(cv.value) ? cv.value.map((value: string) => value) : [],
+                        }
+                    }
+
+
                     // For non-file types, just pass the value as is
                     return {
                         characteristicId: cv.characteristicId,

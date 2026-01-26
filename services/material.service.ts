@@ -18,6 +18,7 @@ type CreateCharacteristicValueInput = {
         | { from: Date; to: Date }
         | { fileToAdd: File[] }
         | { multiText: { title: string; text: string }[] }
+        | { [key: string]: boolean }[]
 }
 
 type UpdateCharacteristicValueInput = {
@@ -31,6 +32,7 @@ type UpdateCharacteristicValueInput = {
         | { from: Date; to: Date }
         | { fileToDelete: string[]; fileToAdd: File[] }
         | { multiText: { title: string; text: string }[] }
+        | { [key: string]: boolean }[]
 }
 
 type MaterialWithMaterialCharacteristics = Material & {

@@ -40,6 +40,7 @@ const createMaterialSchema = z.object({
                                 }),
                             ),
                         }),
+                        z.array(z.record(z.string(),z.boolean())),
                     ])
                     .optional(),
             }),
@@ -78,6 +79,7 @@ const updateMaterialSchema = z.object({
                                 }),
                             ),
                         }),
+                        z.array(z.record(z.string(),z.boolean())),
                     ])
                     .optional(),
             }),
