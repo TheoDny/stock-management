@@ -1,14 +1,14 @@
 "use client"
 
-import * as React from "react"
 import * as HoverCardPrimitive from "@radix-ui/react-hover-card"
+import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
 function HoverCard({
   ...props
 }: React.ComponentProps<typeof HoverCardPrimitive.Root>) {
-  return <HoverCardPrimitive.Root data-slot="hover-card" {...props} />
+  return <HoverCardPrimitive.Root data-slot="hover-card" openDelay={100} closeDelay={200} {...props} />
 }
 
 function HoverCardTrigger({
@@ -41,4 +41,5 @@ function HoverCardContent({
   )
 }
 
-export { HoverCard, HoverCardTrigger, HoverCardContent }
+export { HoverCard, HoverCardContent, HoverCardTrigger }
+
