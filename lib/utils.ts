@@ -21,3 +21,13 @@ export function isObjectEmpty(obj: Record<string, unknown>) {
 export async function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
+
+export function normalizeDate(input: unknown): Date | null {
+        if (!input) return null
+        if (input instanceof Date) return input
+        if (typeof input === "string" || typeof input === "number") {
+            const d = new Date(input)
+            return Number.isNaN(d.getTime()) ? null : d
+        }
+        return null
+}

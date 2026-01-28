@@ -37,6 +37,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { normalizeDate } from "@/lib/utils"
 import {
     buildCharacteristicDefaultValue,
     handleActionResult,
@@ -213,27 +214,36 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
 
                     // Handle date types
                     if (cv.Characteristic.type === "date" || cv.Characteristic.type === "dateHour") {
-                        // Ensure date is in the correct format
+                        // Ensure date is in the correct format for server action validation (Date instance)
+                        const date = (
+                            cv.value && typeof cv.value === "object" && "date" in cv.value
+                                ? normalizeDate((cv.value as { date?: unknown }).date)
+                                : null
+                        )
                         return {
                             characteristicId: cv.characteristicId,
-                            value:
-                                cv.value && typeof cv.value === "object" && "date" in cv.value
-                                    ? { date: new Date(cv.value.date).toISOString() }
-                                    : null,
+                            value: date ? { date } : null,
                         }
                     }
 
                     // Handle date range types
                     if (cv.Characteristic.type === "dateRange" || cv.Characteristic.type === "dateHourRange") {
-                        // Ensure dateRange is in the correct format
+                        // Ensure dateRange is in the correct format for server action validation (Date instances)
+                        const from = (
+                            cv.value && typeof cv.value === "object" && "from" in cv.value
+                                ? normalizeDate((cv.value as { from?: unknown }).from)
+                                : null
+                        )
+                        const to = (
+                            cv.value && typeof cv.value === "object" && "to" in cv.value
+                                ? normalizeDate((cv.value as { to?: unknown }).to)
+                                : null
+                        )
                         return {
                             characteristicId: cv.characteristicId,
                             value:
-                                cv.value && typeof cv.value === "object" && "from" in cv.value && "to" in cv.value
-                                    ? {
-                                          from: new Date(cv.value.from).toISOString(),
-                                          to: new Date(cv.value.to).toISOString(),
-                                      }
+                                cv.value && typeof cv.value === "object" && "from" in cv.value && "to" in cv.value && from && to
+                                    ? { from, to }
                                     : null,
                         }
                     }
@@ -308,27 +318,36 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
 
                     // Handle date types
                     if (cv.Characteristic.type === "date" || cv.Characteristic.type === "dateHour") {
-                        // Ensure date is in the correct format
+                        // Ensure date is in the correct format for server action validation (Date instance)
+                        const date = (
+                            cv.value && typeof cv.value === "object" && "date" in cv.value
+                                ? normalizeDate((cv.value as { date?: unknown }).date)
+                                : null
+                        )
                         return {
                             characteristicId: cv.characteristicId,
-                            value:
-                                cv.value && typeof cv.value === "object" && "date" in cv.value
-                                    ? { date: new Date(cv.value.date).toISOString() }
-                                    : null,
+                            value: date ? { date } : null,
                         }
                     }
 
                     // Handle date range types
                     if (cv.Characteristic.type === "dateRange" || cv.Characteristic.type === "dateHourRange") {
-                        // Ensure dateRange is in the correct format
+                        // Ensure dateRange is in the correct format for server action validation (Date instances)
+                        const from = (
+                            cv.value && typeof cv.value === "object" && "from" in cv.value
+                                ? normalizeDate((cv.value as { from?: unknown }).from)
+                                : null
+                        )
+                        const to = (
+                            cv.value && typeof cv.value === "object" && "to" in cv.value
+                                ? normalizeDate((cv.value as { to?: unknown }).to)
+                                : null
+                        )
                         return {
                             characteristicId: cv.characteristicId,
                             value:
-                                cv.value && typeof cv.value === "object" && "from" in cv.value && "to" in cv.value
-                                    ? {
-                                          from: new Date(cv.value.from).toISOString(),
-                                          to: new Date(cv.value.to).toISOString(),
-                                      }
+                                cv.value && typeof cv.value === "object" && "from" in cv.value && "to" in cv.value && from && to
+                                    ? { from, to }
                                     : null,
                         }
                     }
