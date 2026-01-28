@@ -28,7 +28,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import Image from "next/image"
-import { useEffect, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { BooleanField } from "./field/boolean-field"
 import { CheckboxField } from "./field/checkbox-field"
@@ -89,6 +89,8 @@ const isImageFile = (fileName: string) => {
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB per file
 const MAX_TOTAL_FILE_SIZE = 50 * 1024 * 1024 // 50MB max total for all files
 
+const getLocalFileKey = (file: File): string => `${file.name}-${file.size}-${file.lastModified}`
+
 const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return bytes + " B"
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
@@ -146,6 +148,17 @@ export function CharacteristicValueForm({
         type?: string
     } | null>(null)
 
+    const optionsArray: any[] = useMemo(() => {
+        if (!characteristic.options) return []
+        try {
+            return typeof characteristic.options === "string"
+                ? JSON.parse(characteristic.options)
+                : characteristic.options
+        } catch {
+            return []
+        }
+    }, [characteristic.options])
+
     // Initialize values based on characteristic type and existing value
     useEffect(() => {
         const initBaseValues = () => {
@@ -186,25 +199,28 @@ export function CharacteristicValueForm({
         }
     }, [filePreviewUrls])
 
-    const handleDateChange = (date: Date | undefined) => {
-        setDates({ ...dates, date })
+    const handleDateChange = useCallback((date: Date | undefined) => {
+        setDates((prev) => ({ ...prev, date }))
         if (date) {
             onChange({ date })
         } else {
             onChange(null)
         }
-    }
+    }, [onChange])
 
-    const handleDateRangeChange = (field: "from" | "to") => (date: Date | undefined) => {
-        const newDates = { ...dates, [field]: date }
-        setDates(newDates)
-
-        if (newDates.from && newDates.to) {
-            onChange({ from: newDates.from, to: newDates.to })
+    const handleDateRangeChange = useCallback((field: "from" | "to") => {
+        return (date: Date | undefined) => {
+            setDates((prev) => {
+                const newDates = { ...prev, [field]: date }
+                if (newDates.from && newDates.to) {
+                    onChange({ from: newDates.from, to: newDates.to })
+                }
+                return newDates
+            })
         }
-    }
+    }, [onChange])
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files)
 
@@ -229,10 +245,17 @@ export function CharacteristicValueForm({
             // Filter out oversized files
             const validFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
             if (validFiles.length === 0) return
-            // Create preview URLs for new files
-            validFiles.forEach((file) => {
-                const previewUrl = URL.createObjectURL(file)
-                setFilePreviewUrls((prev) => new Map(prev).set(file.name + Math.random(), previewUrl))
+
+            // Create preview URLs for new files (user action, no effect-needed)
+            setFilePreviewUrls((prev) => {
+                const next = new Map(prev)
+                for (const file of validFiles) {
+                    const key = getLocalFileKey(file)
+                    if (!next.has(key)) {
+                        next.set(key, URL.createObjectURL(file))
+                    }
+                }
+                return next
             })
 
             // Calculate total size of files being uploaded in this operation
@@ -265,9 +288,9 @@ export function CharacteristicValueForm({
         if (fileInputRef.current) {
             fileInputRef.current.value = ""
         }
-    }
+    }, [onChange, tMatFiles, value])
 
-    const removeNewFile = (index: number) => {
+    const removeNewFile = useCallback((index: number) => {
         if (isEditing) {
             // Remove from fileToAdd in edit mode
             const currentValue = value || {}
@@ -275,7 +298,7 @@ export function CharacteristicValueForm({
 
             // Revoke the URL if it exists
             const file = currentFilesToAdd[index]
-            const key = file.name + index
+            const key = getLocalFileKey(file)
             if (filePreviewUrls.has(key)) {
                 URL.revokeObjectURL(filePreviewUrls.get(key)!)
                 setFilePreviewUrls((prev) => {
@@ -297,7 +320,7 @@ export function CharacteristicValueForm({
 
             // Revoke the URL if it exists
             const file = currentFiles[index]
-            const key = file.name + index
+            const key = getLocalFileKey(file)
             if (filePreviewUrls.has(key)) {
                 URL.revokeObjectURL(filePreviewUrls.get(key)!)
                 setFilePreviewUrls((prev) => {
@@ -310,9 +333,9 @@ export function CharacteristicValueForm({
             currentFiles.splice(index, 1)
             onChange({ fileToAdd: currentFiles })
         }
-    }
+    }, [filePreviewUrls, isEditing, onChange, value])
 
-    const markFileForDeletion = (fileId: string) => {
+    const markFileForDeletion = useCallback((fileId: string) => {
         if (!isEditing) return
 
         const currentValue = value || {}
@@ -325,9 +348,9 @@ export function CharacteristicValueForm({
                 fileToDelete: [...currentFilesToDelete, fileId],
             })
         }
-    }
+    }, [isEditing, onChange, value])
 
-    const unmarkFileForDeletion = (fileId: string) => {
+    const unmarkFileForDeletion = useCallback((fileId: string) => {
         if (!isEditing) return
 
         const currentValue = value || {}
@@ -339,9 +362,9 @@ export function CharacteristicValueForm({
             ...currentValue,
             fileToDelete: currentFilesToDelete,
         })
-    }
+    }, [isEditing, onChange, value])
 
-    const isFileMarkedForDeletion = (fileId: string): boolean => {
+    const isFileMarkedForDeletion = useCallback((fileId: string): boolean => {
         if (!isEditing) return false
         return (
             value &&
@@ -350,10 +373,10 @@ export function CharacteristicValueForm({
             Array.isArray(value.fileToDelete) &&
             (value as { fileToDelete: string[] }).fileToDelete.includes(fileId)
         )
-    }
+    }, [isEditing, value])
 
     // Open file preview dialog
-    const handleOpenPreview = (file: { id: string; name: string; type: string }) => {
+    const handleOpenPreview = useCallback((file: { id: string; name: string; type: string }) => {
         const fileUrl = `/api/image/${file.id}`
         setPreviewFile({
             url: fileUrl,
@@ -361,11 +384,10 @@ export function CharacteristicValueForm({
             type: file.type,
         })
         setPreviewDialogOpen(true)
-    }
+    }, [])
 
     const renderFormControl = () => {
-        const { type, options, units } = characteristic
-        const optionsArray: any[] = options ? (typeof options === "string" ? JSON.parse(options) : options) : []
+        const { type, units } = characteristic
 
         switch (type) {
             case "text":
@@ -593,23 +615,11 @@ export function CharacteristicValueForm({
             case "file":
                 let files: File[] = []
                 let existingFiles: Array<{ id: string; name: string; type: string }> = []
-                let filesToDelete: string[] = []
                 // Initialize file data based on value and editing state
                 if (isEditing) {
                     if (value && typeof value === "object") {
                         if ("fileToAdd" in value && Array.isArray(value.fileToAdd)) {
                             files = value.fileToAdd
-
-                            // Create preview URLs for new files
-                            files.forEach((file, index) => {
-                                if (!filePreviewUrls.has(file.name + index)) {
-                                    const previewUrl = URL.createObjectURL(file)
-                                    setFilePreviewUrls((prev) => new Map(prev).set(file.name + index, previewUrl))
-                                }
-                            })
-                        }
-                        if ("fileToDelete" in value && Array.isArray(value.fileToDelete)) {
-                            filesToDelete = value.fileToDelete
                         }
                     }
 
@@ -624,14 +634,6 @@ export function CharacteristicValueForm({
                     // For new material, just handle new files
                     if (value && typeof value === "object" && "fileToAdd" in value && Array.isArray(value.fileToAdd)) {
                         files = value.fileToAdd
-
-                        // Create preview URLs for new files
-                        files.forEach((file, index) => {
-                            if (!filePreviewUrls.has(file.name + index)) {
-                                const previewUrl = URL.createObjectURL(file)
-                                setFilePreviewUrls((prev) => new Map(prev).set(file.name + index, previewUrl))
-                            }
-                        })
                     }
                 }
 
@@ -680,10 +682,13 @@ export function CharacteristicValueForm({
                                             >
                                                 <div className="h-18 w-18 min-w-14  rounded-md overflow-hidden bg-accent flex items-center justify-center">
                                                     {isImageFile(file.name) ? (
-                                                        <img
-                                                            src={filePreviewUrls.get(file.name + index) || ""}
+                                                        <Image
+                                                            src={filePreviewUrls.get(getLocalFileKey(file)) || ""}
                                                             alt={file.name}
+                                                            width={72}
+                                                            height={72}
                                                             className="h-full w-full object-scale-down"
+                                                            unoptimized
                                                         />
                                                     ) : (
                                                         getFileIcon(file.name)
@@ -861,3 +866,6 @@ export function CharacteristicValueForm({
 
     return <div className="space-y-2">{renderFormControl()}</div>
 }
+
+// Perf: memoized to avoid rerendering all characteristic inputs when only one value changes.
+export const MemoizedCharacteristicValueForm = memo(CharacteristicValueForm)

@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import "dotenv/config"
 import { Check, GripVertical, X } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
@@ -47,7 +47,7 @@ import { Characteristic, Tag } from "@/prisma/generated/browser"
 import { MaterialCharacteristicClient } from "@/types/characteristic.type"
 import { MaterialWithTag } from "@/types/material.type"
 import { useTranslations } from "next-intl"
-import { CharacteristicValueForm } from "./characteristic-value-form"
+import { MemoizedCharacteristicValueForm } from "./characteristic-value-form"
 
 const materialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -70,13 +70,13 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const [characteristics, setCharacteristics] = useState<Characteristic[]>([])
     const [characteristicValues, setCharacteristicValues] = useState<MaterialCharacteristicClient[]>([])
     const [activeTab, setActiveTab] = useState("general")
-    const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
     const [selectedCharacteristicId, setSelectedCharacteristicId] = useState<string>("")
     const tCommon = useTranslations("Common")
     const tMaterialDialog = useTranslations("Materials.dialog")
     const tMaterials = useTranslations("Materials")
 
     const isEditing = !!material
+    const draggedItemIndexRef = useRef<number | null>(null)
 
     const form = useForm<MaterialFormValues>({
         resolver: zodResolver(materialSchema),
@@ -86,6 +86,12 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             tagIds: material?.Tags.map((tag) => tag.id) || [],
             orderCharacteristics: material?.order_Material_Characteristic || [],
         },
+    })
+
+    // Subscribes to ordering changes so drag-and-drop updates the UI without forcing rerenders via extra state.
+    const orderCharacteristics = useWatch({
+        control: form.control,
+        name: "orderCharacteristics",
     })
 
     useEffect(() => {
@@ -397,7 +403,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         }
     }
 
-    const handleAddCharacteristic = (characteristicId: string | string[]) => {
+    const handleAddCharacteristic = useCallback((characteristicId: string | string[]) => {
         const id = Array.isArray(characteristicId) ? characteristicId[0] : characteristicId
         
         if (!id) {
@@ -412,24 +418,27 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             return
         }
 
-        // Check if already added
-        if (characteristicValues.some((cv) => cv.characteristicId === characteristic.id)) {
-            setSelectedCharacteristicId("")
-            return
-        }
-
         const newValueCharacteristic = buildCharacteristicDefaultValue(characteristic)
 
-        setCharacteristicValues([...characteristicValues, newValueCharacteristic])
+        setCharacteristicValues((prev) => {
+            // Check if already added (avoid stale closure + unnecessary re-render)
+            if (prev.some((cv) => cv.characteristicId === characteristic.id)) {
+                return prev
+            }
+            return [...prev, newValueCharacteristic]
+        })
+
         // Add to the order list
         const currentOrder = form.getValues("orderCharacteristics")
-        form.setValue("orderCharacteristics", [...currentOrder, characteristic.id])
+        if (!currentOrder.includes(characteristic.id)) {
+            form.setValue("orderCharacteristics", [...currentOrder, characteristic.id])
+        }
 
         setSelectedCharacteristicId("")
-    }
+    }, [characteristics, form])
 
-    const handleRemoveCharacteristic = (characteristicId: string) => {
-        setCharacteristicValues(characteristicValues.filter((cv) => cv.characteristicId !== characteristicId))
+    const handleRemoveCharacteristic = useCallback((characteristicId: string) => {
+        setCharacteristicValues((prev) => prev.filter((cv) => cv.characteristicId !== characteristicId))
 
         // Remove from the order list
         const currentOrder = form.getValues("orderCharacteristics")
@@ -437,52 +446,51 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             "orderCharacteristics",
             currentOrder.filter((id) => id !== characteristicId),
         )
-    }
+    }, [form])
 
-    const handleCharacteristicValueChange = (characteristicId: string, value: any) => {
-        setCharacteristicValues(
-            characteristicValues.map((cv) => (cv.characteristicId === characteristicId ? { ...cv, value } : cv)),
+    const handleCharacteristicValueChange = useCallback((characteristicId: string, value: any) => {
+        setCharacteristicValues((prev) =>
+            prev.map((cv) => (cv.characteristicId === characteristicId ? { ...cv, value } : cv)),
         )
-    }
+    }, [])
 
-    const getAvailableCharacteristics = () => {
-        return characteristics.filter((c) => !characteristicValues.some((cv) => cv.characteristicId === c.id))
-    }
+    const availableCharacteristics = useMemo(() => {
+        const selected = new Set(characteristicValues.map((cv) => cv.characteristicId))
+        return characteristics.filter((c) => !selected.has(c.id))
+    }, [characteristics, characteristicValues])
 
     // Get ordered characteristic values based on the current order
-    const getOrderedCharacteristicValues = () => {
-        const order = form.getValues("orderCharacteristics")
+    const orderedCharacteristicValues = useMemo(() => {
+        const order = orderCharacteristics || []
+        const orderIndex = new Map<string, number>(order.map((id, idx) => [id, idx]))
 
-        // First, sort by the order array
-        const orderedValues = [...characteristicValues].sort((a, b) => {
-            const aIndex = order.indexOf(a.characteristicId)
-            const bIndex = order.indexOf(b.characteristicId)
+        return [...characteristicValues].sort((a, b) => {
+            const aIndex = orderIndex.get(a.characteristicId)
+            const bIndex = orderIndex.get(b.characteristicId)
 
-            // If not in order array, put at the end
-            if (aIndex === -1) return 1
-            if (bIndex === -1) return -1
-
+            if (aIndex === undefined && bIndex === undefined) return 0
+            if (aIndex === undefined) return 1
+            if (bIndex === undefined) return -1
             return aIndex - bIndex
         })
-
-        return orderedValues
-    }
+    }, [characteristicValues, orderCharacteristics])
 
     // Drag and drop handlers
-    const handleDragStart = (index: number) => {
-        setDraggedItemIndex(index)
-    }
+    const handleDragStart = useCallback((index: number) => {
+        draggedItemIndexRef.current = index
+    }, [])
 
-    const handleDragOver = (e: React.DragEvent, index: number) => {
+    const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
         e.preventDefault()
-        if (draggedItemIndex === null || draggedItemIndex === index) return
+        const draggedIndex = draggedItemIndexRef.current
+        if (draggedIndex === null || draggedIndex === index) return
 
         // Reorder the characteristics
-        const orderedValues = getOrderedCharacteristicValues()
+        const orderedValues = orderedCharacteristicValues
         const order = form.getValues("orderCharacteristics")
 
         // Get the item being dragged and the target position
-        const draggedItem = orderedValues[draggedItemIndex]
+        const draggedItem = orderedValues[draggedIndex]
 
         // Create new order by moving the dragged item
         const newOrder = [...order]
@@ -495,14 +503,71 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             form.setValue("orderCharacteristics", newOrder)
         }
 
-        setDraggedItemIndex(index)
-    }
+        draggedItemIndexRef.current = index
+    }, [form, orderedCharacteristicValues])
 
-    const handleDragEnd = () => {
-        setDraggedItemIndex(null)
-    }
+    const handleDragEnd = useCallback(() => {
+        draggedItemIndexRef.current = null
+    }, [])
 
-    const availableCharacteristics = getAvailableCharacteristics()
+    /**
+     * Perf: A characteristic row is memoized so typing in one field doesn't rerender the whole list.
+     * This is critical when many characteristics exist.
+     */
+    const CharacteristicRow = useMemo(() => {
+        type Props = {
+            cv: MaterialCharacteristicClient
+            index: number
+            isEditing: boolean
+            onRemove: (characteristicId: string) => void
+            onValueChange: (characteristicId: string, value: any) => void
+            onDragStart: (index: number) => void
+            onDragOver: (e: React.DragEvent, index: number) => void
+            onDragEnd: () => void
+        }
+
+        return memo(function CharacteristicRowImpl({
+            cv,
+            index,
+            isEditing,
+            onRemove,
+            onValueChange,
+            onDragStart,
+            onDragOver,
+            onDragEnd,
+        }: Props) {
+            return (
+                <div
+                    className="border rounded-md p-3 space-y-1"
+                    draggable
+                    onDragStart={() => onDragStart(index)}
+                    onDragOver={(e) => onDragOver(e, index)}
+                    onDragEnd={onDragEnd}
+                >
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <GripVertical className="h-4 w-4 cursor-move text-gray-400" />
+                            <div className="font-medium">{cv.Characteristic.name}</div>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onRemove(cv.characteristicId)}
+                        >
+                            <X className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
+                    <div className="text-sm text-muted-foreground">{cv.Characteristic.description}</div>
+                    <MemoizedCharacteristicValueForm
+                        characteristic={cv.Characteristic}
+                        value={cv.value}
+                        onChange={(value) => onValueChange(cv.characteristicId, value)}
+                        isEditing={isEditing}
+                    />
+                </div>
+            )
+        })
+    }, [])
 
     return (
         <Dialog
@@ -634,6 +699,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                     value="characteristics"
                                     className="space-y-4"
                                 >
+                                    {activeTab !== "characteristics" ? null : (
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center">
                                             <FormLabel>{tMaterialDialog("characteristics")}</FormLabel>
@@ -657,51 +723,23 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                     {tMaterialDialog("noCharacteristics")}
                                                 </div>
                                             ) : (
-                                                getOrderedCharacteristicValues().map((cv, index) => (
-                                                    <div
+                                                orderedCharacteristicValues.map((cv, index) => (
+                                                    <CharacteristicRow
                                                         key={cv.characteristicId}
-                                                        className="border rounded-md p-3 space-y-1"
-                                                        draggable
-                                                        onDragStart={() => handleDragStart(index)}
-                                                        onDragOver={(e) => handleDragOver(e, index)}
+                                                        cv={cv}
+                                                        index={index}
+                                                        isEditing={isEditing}
+                                                        onRemove={handleRemoveCharacteristic}
+                                                        onValueChange={handleCharacteristicValueChange}
+                                                        onDragStart={handleDragStart}
+                                                        onDragOver={handleDragOver}
                                                         onDragEnd={handleDragEnd}
-                                                    >
-                                                        <div className="flex justify-between items-center">
-                                                            <div className="flex items-center gap-2">
-                                                                <GripVertical className="h-4 w-4 cursor-move text-gray-400" />
-                                                                <div className="font-medium">
-                                                                    {cv.Characteristic.name}
-                                                                </div>
-                                                            </div>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() =>
-                                                                    handleRemoveCharacteristic(cv.characteristicId)
-                                                                }
-                                                            >
-                                                                <X className="h-4 w-4 text-destructive" />
-                                                            </Button>
-                                                        </div>
-                                                        <div className="text-sm text-muted-foreground">
-                                                            {cv.Characteristic.description}
-                                                        </div>
-                                                        <CharacteristicValueForm
-                                                            characteristic={cv.Characteristic}
-                                                            value={cv.value}
-                                                            onChange={(value) => {
-                                                                handleCharacteristicValueChange(
-                                                                    cv.characteristicId,
-                                                                    value,
-                                                                )
-                                                            }}
-                                                            isEditing={isEditing}
-                                                        />
-                                                    </div>
+                                                    />
                                                 ))
                                             )}
                                         </div>
                                     </div>
+                                    )}
                                 </TabsContent>
                             </div>
 

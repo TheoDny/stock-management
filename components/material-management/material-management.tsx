@@ -256,7 +256,7 @@ export function MaterialManagement() {
                                 variant="ghost"
                                 size="icon"
                             >
-                                <Link href={`/materials/history/${material.id}`}>
+                                <Link target="_blank" href={`/materials/history/${material.id}`}>
                                     <History />
                                 </Link>
                             </Button>
