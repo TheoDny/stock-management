@@ -3,6 +3,7 @@
 import { Separator } from "@/components/ui/separator"
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton } from "@/components/ui/sidebar"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { ReactNode } from "react"
 
 export function NavMain({
@@ -20,6 +21,8 @@ export function NavMain({
         }[]
     }[]
 }) {
+    const pathname = usePathname()
+
     return (
         <>
             {groups.map((group) => (
@@ -30,7 +33,7 @@ export function NavMain({
                         {group.items?.map((item) => (
                             <SidebarMenuButton
                                 key={item.title}
-                                className={item.isActive ? "" : ""}
+                                isActive={pathname === item.url}
                                 asChild
                                 tooltip={item.title}
                             >

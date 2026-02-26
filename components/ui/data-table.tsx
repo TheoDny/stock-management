@@ -134,9 +134,10 @@ export function DataTable<T>({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             <p className="text-sm text-muted-foreground">
-                                {tDataTable("page")} {data.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
-                                {" " + tDataTable("on") + " "}
-                                {totalPages} {" -- (" + tDataTable("total") + " " + data.length + ")"}
+                                {data.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                                {" - "}
+                                {Math.min(currentPage * itemsPerPage, data.length)}
+                                {" (" + tDataTable("total") + " " + data.length + ")"}
                             </p>
                             <div className="flex items-center space-x-2">
                                 <Select

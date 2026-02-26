@@ -15,7 +15,7 @@ import { formatDate } from "@/lib/utils"
 import { TagAndCountMaterial } from "@/types/tag.type"
 import { TagDialog } from "./tag-dialog"
 
-type SortField = "name" | "colorText" | "materialsCount" | "updatedAt"
+type SortField = "name" | "materialsCount" | "updatedAt"
 type SortDirection = "asc" | "desc"
 
 export function TagManagement() {
@@ -61,7 +61,7 @@ export function TagManagement() {
         if (searchQuery) {
             const query = searchQuery.toLowerCase()
             filtered = filtered.filter(
-                (tag) => tag.name.toLowerCase().includes(query) || tag.fontColor.toLowerCase().includes(query),
+                (tag) => tag.name.toLowerCase().includes(query),
             )
         }
 
@@ -71,8 +71,6 @@ export function TagManagement() {
 
             if (sortField === "name") {
                 comparison = a.name.localeCompare(b.name)
-            } else if (sortField === "colorText") {
-                comparison = a.fontColor.localeCompare(b.fontColor)
             } else if (sortField === "materialsCount") {
                 comparison = a._count.Materials - b._count.Materials
             } else if (sortField === "updatedAt") {
@@ -132,21 +130,6 @@ export function TagManagement() {
                 >
                     {tag.name}
                 </Badge>
-            ),
-        },
-        {
-            key: "fontColor",
-            header: t("columns.colorText"),
-            cell: (tag) => tag.fontColor,
-        },
-        {
-            key: "color",
-            header: t("columns.color"),
-            cell: (tag) => (
-                <div
-                    className="w-6 h-6 rounded-full"
-                    style={{ backgroundColor: tag.color }}
-                />
             ),
         },
         {

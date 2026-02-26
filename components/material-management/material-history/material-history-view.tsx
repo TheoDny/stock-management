@@ -186,8 +186,8 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
                                 <div className="text-sm text-muted-foreground">
                                     {(currentPage - 1) * itemsPerPage + 1}
                                     {" - "}
-                                    {Math.min(currentPage * itemsPerPage, history.length)}{" "}
-                                    {" -- (" + history.length + ")"}
+                                    {Math.min(currentPage * itemsPerPage, history.length)}
+                                    {" (Total " + history.length + ")"}
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Button
