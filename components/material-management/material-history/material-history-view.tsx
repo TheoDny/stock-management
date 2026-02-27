@@ -286,6 +286,9 @@ export default function MaterialHistoryDisplay({ history }: { history: MaterialH
 const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped }) => {
     const historyT = useTranslations("MaterialHistory")
 
+    const characteristics = parseCharacteristics(record.Characteristics)
+    const tags = parseTags(record.Tags)
+
     return (
         <>
             {/* Tabs for mobile and medium screens */}
@@ -324,9 +327,9 @@ const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped
                             <div className="text-sm font-medium mb-2">
                                 {historyT("tags")}:
                             </div>
-                            {parseTags(record.Tags).length > 0 ? (
+                            {tags.length > 0 ? (
                                 <div className="flex flex-wrap gap-2">
-                                    {parseTags(record.Tags).map((tag, idx) => (
+                                    {tags.map((tag, idx) => (
                                         <Badge
                                             style={{
                                                 backgroundColor: tag.color,
@@ -347,23 +350,19 @@ const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped
                     </TabsContent>
 
                     <TabsContent value="characteristics">
-                        {parseCharacteristics(record.Characteristics).length > 0 ? (
+                        {characteristics.length > 0 ? (
                             <div className="space-y-3 mt-2">
-                                {parseCharacteristics(record.Characteristics).map(
-                                    (char, idx) => (
-                                        <div key={idx}>
-                                            <CharacteristicDisplay
-                                                characteristic={char}
-                                                showLabel={true}
-                                            />
-                                            {idx <
-                                                parseCharacteristics(
-                                                    record.Characteristics,
-                                                ).length -
-                                                1 && <Separator className="my-3" />}
-                                        </div>
-                                    ),
-                                )}
+                                {characteristics.map((char, idx) => (
+                                    <div key={idx}>
+                                        <CharacteristicDisplay
+                                            characteristic={char}
+                                            showLabel={true}
+                                        />
+                                        {idx < characteristics.length - 1 && (
+                                            <Separator className="my-3" />
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         ) : (
                             <div className="mt-2 text-sm text-gray-500">
@@ -400,9 +399,9 @@ const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped
 
                     <div className="mt-4">
                         <div className="text-sm font-medium mb-2">{historyT("tags")}:</div>
-                        {parseTags(record.Tags).length > 0 ? (
+                        {tags.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
-                                {parseTags(record.Tags).map((tag, idx) => (
+                                {tags.map((tag, idx) => (
                                     <Badge
                                         style={{
                                             backgroundColor: tag.color,
@@ -427,22 +426,19 @@ const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped
                     <h3 className="text-sm font-medium mb-3">
                         {historyT("characteristics")}
                     </h3>
-                    {parseCharacteristics(record.Characteristics).length > 0 ? (
+                    {characteristics.length > 0 ? (
                         <div className="space-y-3">
-                            {parseCharacteristics(record.Characteristics).map(
-                                (char, idx) => (
-                                    <div key={idx}>
-                                        <CharacteristicDisplay
-                                            characteristic={char}
-                                            showLabel={true}
-                                        />
-                                        {idx <
-                                            parseCharacteristics(record.Characteristics)
-                                                .length -
-                                            1 && <Separator className="my-3" />}
-                                    </div>
-                                ),
-                            )}
+                            {characteristics.map((char, idx) => (
+                                <div key={idx}>
+                                    <CharacteristicDisplay
+                                        characteristic={char}
+                                        showLabel={true}
+                                    />
+                                    {idx < characteristics.length - 1 && (
+                                        <Separator className="my-3" />
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     ) : (
                         <div className="text-sm text-gray-500">
