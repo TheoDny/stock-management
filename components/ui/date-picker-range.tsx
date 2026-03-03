@@ -1,19 +1,19 @@
 "use client"
 
-import * as React from "react"
-import { format, setHours, setMinutes } from "date-fns"
-import { Calendar as CalendarIcon, Clock } from "lucide-react"
-import { DateRange } from "react-day-picker"
+import { Separator } from "@/components/ui/separator"
+import { cn, formatDate } from "@/lib/utils"
+import { Close as PopoverClose } from "@radix-ui/react-popover"
+import { setHours, setMinutes } from "date-fns"
 import { fr } from "date-fns/locale"
-
-import { cn } from "@/lib/utils"
+import { Calendar as CalendarIcon, Clock } from "lucide-react"
+import { useLocale } from "next-intl"
+import * as React from "react"
+import { DateRange } from "react-day-picker"
 import { Button } from "./button"
 import { Calendar } from "./calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "./popover"
-import { Close as PopoverClose } from "@radix-ui/react-popover"
-import { Separator } from "@/components/ui/separator"
-import { Label } from "./label"
 import { Input } from "./input"
+import { Label } from "./label"
+import { Popover, PopoverContent, PopoverTrigger } from "./popover"
 
 type DatePickerRangeProps = React.HTMLAttributes<HTMLDivElement> & {
     date: DateRange | undefined
@@ -58,6 +58,7 @@ export function DatePickerRange({
     const [fromMinute, setFromMinute] = React.useState("00")
     const [toHour, setToHour] = React.useState("23")
     const [toMinute, setToMinute] = React.useState("59")
+    const currentLocale = useLocale() as "en" | "fr"
 
     // Mettre à jour l'heure dans la date
     const updateTimeInDate = () => {
@@ -102,12 +103,12 @@ export function DatePickerRange({
     // Formater l'affichage de la date avec l'heure si includeTime est true
     const formatDateDisplay = (dateValue: Date, isTo = false) => {
         if (!includeTime) {
-            return format(dateValue, "LLL dd, y", { locale: fr })
+            return formatDate(dateValue, "LLL dd, y", currentLocale)
         }
 
         const h = isTo ? toHour : fromHour
         const m = isTo ? toMinute : fromMinute
-        return format(dateValue, "LLL dd, y") + ` ${h}:${m}`
+        return `${h}:${m} ${formatDate(dateValue, "LLL dd, y", currentLocale)}`
     }
 
     // Initialiser les heures et minutes lors du changement de date
