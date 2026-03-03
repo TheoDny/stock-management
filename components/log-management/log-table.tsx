@@ -6,10 +6,11 @@ import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 import { Column, DataTable } from "@/components/ui/data-table"
 import { DatePickerRange } from "@/components/ui/date-picker-range"
 import { Skeleton } from "@/components/ui/skeleton"
+import { formatDate } from "@/lib/utils"
 import { LogType } from "@/prisma/generated/enums"
 import { LogEntry } from "@/types/log.type"
-import { format, subDays } from "date-fns"
-import { useTranslations } from "next-intl"
+import { subDays } from "date-fns"
+import { useLocale, useTranslations } from "next-intl"
 import { useEffect, useMemo, useState } from "react"
 import { DateRange } from "react-day-picker"
 
@@ -23,6 +24,8 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     })
     const [isLoadingData, setIsLoadingData] = useState(false)
     const [hasLoadedFromDateRange, setHasLoadedFromDateRange] = useState(false)
+    const currentLocale = useLocale() as "en" | "fr"
+
 
     const [filters, setFilters] = useState<{
         logType: string[]
@@ -61,7 +64,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         {
             key: "date",
             header: t("date"),
-            cell: (log) => formatDate(log.createdAt),
+            cell: (log) => formatDate(log.createdAt, "dd/MM/yyyy HH:mm:ss", currentLocale),
         },
     ]
 
@@ -75,8 +78,8 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
             setIsLoadingData(true)
             try {
                 let result = await getLogsAction({
-                    startDate: dateRange.from.toISOString(),
-                    endDate: (dateRange.to || dateRange.from).toISOString(),
+                    startDate: dateRange.from,
+                    endDate: dateRange.to,
                 })
 
                 if (result?.serverError) {
@@ -176,11 +179,6 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         })
     }
 
-    // Format date based on locale
-    const formatDate = (date: Date) => {
-        return format(new Date(date), "dd/MM/yyyy HH:mm:ss")
-    }
-
     // Get the translated log message
     const getLogMessage = (log: LogEntry) => {
         const type = log.type
@@ -250,8 +248,8 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                             setIsLoadingData(true)
                             try {
                                 let result = await getLogsAction({
-                                    startDate: dateRange.from.toISOString(),
-                                    endDate: (dateRange.to || dateRange.from).toISOString(),
+                                    startDate: dateRange.from,
+                                    endDate: dateRange.to,
                                 })
 
                                 if (result?.serverError) {
