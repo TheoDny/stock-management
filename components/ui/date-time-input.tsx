@@ -7,7 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { TimePicker } from "@/components/ui/time-picker"
 import { formatDate } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
+import { DayPickerLocale, enUS, fr } from "react-day-picker/locale"
 
 interface DateTimeInputProps {
     date?: Date
@@ -17,7 +18,20 @@ interface DateTimeInputProps {
 
 export function DateTimeInput({ date, onDateChange, showTime = false }: DateTimeInputProps) {
     const tCommon = useTranslations("Common")
-    
+    const currentLocale = useLocale() as "en" | "fr"
+    let localeObj: DayPickerLocale
+    switch (currentLocale) {
+        case "en":
+            localeObj = enUS
+            break;
+        case "fr":
+            localeObj = fr
+            break;
+        default:
+            localeObj = enUS
+            break;
+    }
+
     const handleDateSelection = (selectedDate: Date | undefined) => {
         if (!selectedDate) {
             onDateChange(undefined)
@@ -42,7 +56,7 @@ export function DateTimeInput({ date, onDateChange, showTime = false }: DateTime
                             className={`w-full justify-start text-left font-normal ${!date && "text-muted-foreground"}`}
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? formatDate(date) : tCommon("selectDate")}
+                            {date ? formatDate(date, undefined, currentLocale) : tCommon("selectDate")}
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -50,7 +64,8 @@ export function DateTimeInput({ date, onDateChange, showTime = false }: DateTime
                             mode="single"
                             selected={date}
                             onSelect={handleDateSelection}
-                            initialFocus
+                            autoFocus={true}
+                            locale={localeObj}
                         />
                     </PopoverContent>
                 </Popover>
