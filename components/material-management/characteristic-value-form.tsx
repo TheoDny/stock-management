@@ -26,7 +26,7 @@ import {
     Upload,
     X
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import Image from "next/image"
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -158,6 +158,7 @@ export function CharacteristicValueForm({
             return []
         }
     }, [characteristic.options])
+    const currentLocale = useLocale() as "en" | "fr"
 
     // Initialize values based on characteristic type and existing value
     useEffect(() => {
@@ -495,7 +496,7 @@ export function CharacteristicValueForm({
                                 className={`w-full justify-start text-left font-normal ${!dates.date && "text-muted-foreground"}`}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {dates.date ? formatDate(dates.date) : tCommon("selectDate")}
+                                {dates.date ? formatDate(dates.date, undefined, currentLocale) : tCommon("selectDate")}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -530,7 +531,7 @@ export function CharacteristicValueForm({
                                         className={`w-full justify-start text-left font-normal ${!dates.from && "text-muted-foreground"}`}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {dates.from ? formatDate(dates.from) : tCommon("selectStartDate")}
+                                        {dates.from ? formatDate(dates.from, undefined, currentLocale) : tCommon("selectStartDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
@@ -553,7 +554,7 @@ export function CharacteristicValueForm({
                                         className={`w-full justify-start text-left font-normal ${!dates.to && "text-muted-foreground"}`}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {dates.to ? formatDate(dates.to) : tCommon("selectEndDate")}
+                                        {dates.to ? formatDate(dates.to, undefined, currentLocale) : tCommon("selectEndDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
