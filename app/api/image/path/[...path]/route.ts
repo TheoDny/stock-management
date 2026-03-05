@@ -1,7 +1,6 @@
+import { InvalidStoragePathError } from "@/errors/InvalidStoragePathError"
 import { getFileByPath } from "@/services/storage.service"
 import { NextRequest, NextResponse } from "next/server"
-
-const STORAGE_PATH = process.env.STORAGE_PATH || "./storage"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
     try {
@@ -12,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             return new NextResponse("File path is required", { status: 400 })
         }
 
-        // Sanitize path to prevent directory traversal attacks
+        // Delegate path validation to storage service.
         const fullPath = pathSegments.join("/")
 
         // Get the file from storage service
@@ -40,6 +39,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             },
         })
     } catch (error) {
+        if (error instanceof InvalidStoragePathError) {
+            return new NextResponse("Invalid file path", { status: 400 })
+        }
+
         console.error("Error serving file:", error)
         return new NextResponse("Error serving file", { status: 500 })
     }

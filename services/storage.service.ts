@@ -1,10 +1,13 @@
+import { InvalidStoragePathError } from "@/errors/InvalidStoragePathError"
 import { prisma } from "@/lib/prisma"
+import { resolveStorageFilePath } from "@/lib/utils.node"
 import { FileDb } from "@/prisma/generated/client"
 import fs from "fs-extra"
 import path from "path"
 import sharp from "sharp"
 
 const STORAGE_PATH = process.env.STORAGE_PATH || "./storage"
+const STORAGE_ROOT = path.resolve(STORAGE_PATH)
 
 export type OptionSaveFile = {
     imgMaxWidth: number
@@ -148,9 +151,26 @@ export async function getFileById(fileId: string) {
     }
 }
 
+/**
+ * Reads a file from storage from an untrusted relative path.
+ * The path is normalized and constrained to STORAGE_ROOT before reading.
+ */
 export async function getFileByPath(filePath: string) {
+    let fullPath: string
+
     try {
-        const data = await fs.readFile(filePath)
+        fullPath = resolveStorageFilePath(filePath, STORAGE_ROOT)
+    } catch (error) {
+        if (error instanceof InvalidStoragePathError) {
+            throw error
+        }
+
+        console.error(`Failed to resolve file path ${filePath}:`, error)
+        return null
+    }
+
+    try {
+        const data = await fs.readFile(fullPath)
 
         return data
     } catch (error) {
