@@ -250,7 +250,18 @@ export function RoleManagement() {
             if (current.includes(permissionCode)) {
                 return current.filter((id) => id !== permissionCode)
             } else {
-                return [...current, permissionCode]
+                const nextPermissions = new Set([...current, permissionCode])
+                const permission = parsePermissionCode(permissionCode)
+
+                // If write-like permissions are granted, ensure read is granted too.
+                if (permission.action === "create" || permission.action === "edit") {
+                    const readPermissionCode = getPermissionCodeForCell(permission.module, "read")
+                    if (readPermissionCode) {
+                        nextPermissions.add(readPermissionCode)
+                    }
+                }
+
+                return Array.from(nextPermissions)
             }
         })
     }
