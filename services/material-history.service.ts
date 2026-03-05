@@ -104,6 +104,7 @@ const buildCharacteristicsJson = async (
             // @ts-ignore valueToSave
             characteristicsJson.push({
                 name: characteristic.name,
+                description: characteristic.description,
                 type: characteristic.type,
                 units: characteristic.units ? characteristic.units : null,
                 value: valueToSave,

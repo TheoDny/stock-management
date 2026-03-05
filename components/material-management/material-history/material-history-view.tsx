@@ -356,7 +356,6 @@ const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped
                                     <div key={idx}>
                                         <CharacteristicDisplay
                                             characteristic={char}
-                                            showLabel={true}
                                         />
                                         {idx < characteristics.length - 1 && (
                                             <Separator className="my-3" />
@@ -432,7 +431,6 @@ const MaterialHistoryElement = ({ record }: { record: MaterialHistoryCharacTyped
                                 <div key={idx}>
                                     <CharacteristicDisplay
                                         characteristic={char}
-                                        showLabel={true}
                                     />
                                     {idx < characteristics.length - 1 && (
                                         <Separator className="my-3" />

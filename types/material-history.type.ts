@@ -23,12 +23,14 @@ export type CharacteristicHistory =
 
 export type CharacteristicHistoryString = {
     name: string
+    description?: string | null
     type: "text" | "textarea" | "link" | "email" | "number" | "float"
     value: string
 }
 
 export type CharacteristicHistoryNumber = {
     name: string
+    description?: string | null
     type: "number" | "float"
     units?: string | null
     value: string
@@ -36,24 +38,28 @@ export type CharacteristicHistoryNumber = {
 
 export type CharacteristicHistoryBoolean = {
     name: string
+    description?: string | null
     type: "boolean"
     value: boolean
 }
 
 export type CharacteristicHistoryDate = {
     name: string
+    description?: string | null
     type: "date" | "dateHour"
     value: { date: Date }
 }
 
 export type CharacteristicHistoryDateRange = {
     name: string
+    description?: string | null
     type: "dateRange" | "dateHourRange"
     value: { from: Date; to: Date }
 }
 
 export type CharacteristicHistoryFile = {
     name: string
+    description?: string | null
     type: "file"
     value: {
         file: {
@@ -66,12 +72,14 @@ export type CharacteristicHistoryFile = {
 
 export type CharacteristicHistoryMulti = {
     name: string
+    description?: string | null
     type: "multiSelect" | "select" | "checkbox" | "radio"
     value: string[]
 }
 
 export type CharacteristicHistoryMultiText = {
     name: string
+    description?: string | null
     type: "multiText" | "multiTextArea"
     value: {
         multiText: {
