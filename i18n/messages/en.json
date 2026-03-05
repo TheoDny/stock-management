@@ -332,6 +332,7 @@
         "newRole": "New Role",
         "search": "Search roles...",
         "searchPermissions": "Search permissions...",
+        "module": "Module",
         "noRolesFound": "No roles found",
         "noRolesFoundSearch": "No roles found matching your search",
         "roles": "Roles",
@@ -344,6 +345,23 @@
         "noPermissionsFound": "No permissions found",
         "noPermissionsFoundSearch": "No permissions found matching your search",
         "selectRoleToManagePermissions": "Select a role to manage permissions",
+        "modules": {
+            "user": "Users",
+            "role": "Roles",
+            "log": "Logs",
+            "tag": "Tags",
+            "characteristic": "Characteristics",
+            "material": "Materials",
+            "other": "Other"
+        },
+        "actions": {
+            "read": "Read",
+            "create": "Create",
+            "edit": "Edit",
+            "delete": "Delete",
+            "import": "Import",
+            "export": "Export"
+        },
         "dialog": {
             "create": "Create Role",
             "edit": "Edit Role",

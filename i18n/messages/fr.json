@@ -328,6 +328,7 @@
         "newRole": "Nouveau Rôle",
         "search": "Rechercher des rôles...",
         "searchPermissions": "Rechercher des permissions...",
+        "module": "Module",
         "noRolesFound": "Aucun rôle trouvé",
         "noRolesFoundSearch": "Aucun rôle trouvé correspondant à votre recherche",
         "roles": "Rôles",
@@ -340,6 +341,23 @@
         "noPermissionsFound": "Aucune permission trouvée",
         "noPermissionsFoundSearch": "Aucune permission trouvée correspondant à votre recherche",
         "selectRoleToManagePermissions": "Sélectionnez un rôle pour gérer les permissions",
+        "modules": {
+            "user": "Utilisateurs",
+            "role": "Rôles",
+            "log": "Journaux",
+            "tag": "Tags",
+            "characteristic": "Caractéristiques",
+            "material": "Matériels",
+            "other": "Autre"
+        },
+        "actions": {
+            "read": "Lecture",
+            "create": "Création",
+            "edit": "Modification",
+            "delete": "Suppression",
+            "import": "Import",
+            "export": "Export"
+        },
         "dialog": {
             "create": "Créer un Rôle",
             "edit": "Modifier un Rôle",
