@@ -9,6 +9,7 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card"
+import { Separator } from "@/components/ui/separator"
 import { cn, formatDate } from "@/lib/utils"
 import {
     CharacteristicHistory,
@@ -326,11 +327,12 @@ export function CharacteristicDisplay({ characteristic }: CharacteristicDisplayP
         // MultiText / MultiTextArea
         if (isMultiTextType(characteristic)) {
             return wrapWithLabel(
-                <div className="flex flex-col gap-2 w-full">
+                <div className="flex flex-col gap-1 w-full">
                     {characteristic.value.multiText.map((item, index) => (
-                        <Card key={index} className="overflow-hidden">
-                            <CardContent className="p-3">
+                        <Card key={index} className="overflow-hidden p-0">
+                            <CardContent className="p-3 gap-1">
                                 <h4 className="text-sm font-medium mb-1">{item.title}</h4>
+                                <Separator className="mb-1" />
                                 <p
                                     className={cn(
                                         "text-sm",

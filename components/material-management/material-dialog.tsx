@@ -265,8 +265,6 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                         }
                     }
 
-
-                    // For non-file types, just pass the value as is
                     return {
                         characteristicId: cv.characteristicId,
                         value: cv.value,

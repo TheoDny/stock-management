@@ -51,7 +51,7 @@ const createMaterialSchema = z.object({
 // Schema for updating a material
 const updateMaterialSchema = z.object({
     id: z.string(),
-    name: z.string().trim().min(2, "name.min").max(64,"name.max"),
+    name: z.string().trim().min(2, "name.min").max(64, "name.max"),
     description: z.string().trim().max(255, "description.max").default(""),
     tagIds: z.array(z.string()).default([]),
     orderCharacteristics: z.array(z.string()).default([]),
@@ -68,10 +68,6 @@ const updateMaterialSchema = z.object({
                         z.object({ date: z.date() }),
                         z.object({ from: z.date(), to: z.date() }),
                         z.object({
-                            fileToDelete: z.array(z.string()).default([]),
-                            fileToAdd: z.array(z.instanceof(File)).default([]),
-                        }),
-                        z.object({
                             multiText: z.array(
                                 z.object({
                                     title: z.string(),
@@ -79,7 +75,11 @@ const updateMaterialSchema = z.object({
                                 }),
                             ),
                         }),
-                        z.array(z.record(z.string(),z.boolean())),
+                        z.object({
+                            fileToDelete: z.array(z.string()).default([]),
+                            fileToAdd: z.array(z.instanceof(File)).default([]),
+                        }),
+                        z.array(z.record(z.string(), z.boolean())),
                     ])
                     .optional(),
             }),
@@ -115,31 +115,36 @@ export async function getMaterialCharacteristicsAction(materialId: string) {
 }
 
 // Create a new material
-export const createMaterialAction = actionClient.inputSchema(createMaterialSchema).action(async ({ parsedInput }) => {
-    // We need a custom permission code for materials, but for now we'll use tag_create
-    const session = await checkAuth({ requiredPermission: "material_create" })
+export const createMaterialAction = actionClient
+    .inputSchema(createMaterialSchema)
+    .action(async ({ parsedInput }) => {
+        // We need a custom permission code for materials, but for now we'll use tag_create
+        const session = await checkAuth({ requiredPermission: "material_create" })
 
-    return await createMaterial(session.user.entitySelectedId, {
-        name: parsedInput.name,
-        description: parsedInput.description || "",
-        tagIds: parsedInput.tagIds,
-        characteristicValues: parsedInput.characteristicValues,
-        orderCharacteristics: parsedInput.orderCharacteristics,
+        return await createMaterial(session.user.entitySelectedId, {
+            name: parsedInput.name,
+            description: parsedInput.description || "",
+            tagIds: parsedInput.tagIds,
+            characteristicValues: parsedInput.characteristicValues,
+            orderCharacteristics: parsedInput.orderCharacteristics,
+        })
     })
-})
 
 // Update an existing material
-export const updateMaterialAction = actionClient.inputSchema(updateMaterialSchema).action(async ({ parsedInput }) => {
-    // We need a custom permission code for materials, but for now we'll use tag_edit
-    const session = await checkAuth({ requiredPermission: "material_edit" })
+export const updateMaterialAction = actionClient
+    .inputSchema(updateMaterialSchema)
+    .action(async ({ parsedInput }) => {
+        // We need a custom permission code for materials, but for now we'll use tag_edit
+        const session = await checkAuth({ requiredPermission: "material_edit" })
 
-    const { id, name, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
+        const { id, name, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
+        console.log("updateMaterialAction", characteristicValues)
 
-    return await updateMaterial(id, session.user.entitySelectedId, {
-        name,
-        description: description || "",
-        tagIds,
-        characteristicValues,
-        orderCharacteristics,
+        return await updateMaterial(id, session.user.entitySelectedId, {
+            name,
+            description: description || "",
+            tagIds,
+            characteristicValues,
+            orderCharacteristics,
+        })
     })
-})
