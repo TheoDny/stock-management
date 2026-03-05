@@ -54,24 +54,25 @@ export async function createRole(data: { name: string; description: string }) {
 // Update an existing role
 export async function updateRole(id: string, data: { name: string; description: string }) {
     try {
-        // Check if it's the Super Admin role
-        const existingRole = await prisma.role.findUnique({
-            where: { id },
-        })
+        const role = await prisma.$transaction(async (tx) => {
+            const existingRole = await tx.role.findUnique({
+                where: { id },
+            })
 
-        if (existingRole?.name === "Super Admin") {
-            throw new Error("Cannot modify the Super Admin role")
-        }
+            if (existingRole?.name === "Super Admin") {
+                throw new Error("Cannot modify the Super Admin role")
+            }
 
-        const role = await prisma.role.update({
-            where: { id },
-            data: {
-                name: data.name,
-                description: data.description || "",
-            },
-            include: {
-                Permissions: true,
-            },
+            return tx.role.update({
+                where: { id },
+                data: {
+                    name: data.name,
+                    description: data.description || "",
+                },
+                include: {
+                    Permissions: true,
+                },
+            })
         })
 
         // Add log
@@ -87,35 +88,38 @@ export async function updateRole(id: string, data: { name: string; description: 
 
 // Delete a role
 export async function deleteRole(id: string) {
-    // Get role details first
-    const roleToDelete = await prisma.role.findUnique({
-        where: { id },
-    })
+    const { role, roleNameForLog } = await prisma.$transaction(async (tx) => {
+        const roleToDelete = await tx.role.findUnique({
+            where: { id },
+        })
 
-    if (!roleToDelete) {
-        throw new Error("Role not found")
-    }
+        if (!roleToDelete) {
+            throw new Error("Role not found")
+        }
 
-    const userCount = await prisma.user.count({
-        where: {
-            Roles: {
-                some: {
-                    id,
+        const userCount = await tx.user.count({
+            where: {
+                Roles: {
+                    some: {
+                        id,
+                    },
                 },
             },
-        },
-    })
+        })
 
-    if (userCount > 0) {
-        throw new DeleteRoleUserAssignedError("Cannot delete a role that is assigned to users")
-    }
+        if (userCount > 0) {
+            throw new DeleteRoleUserAssignedError("Cannot delete a role that is assigned to users")
+        }
 
-    const role = await prisma.role.delete({
-        where: { id },
+        const deletedRole = await tx.role.delete({
+            where: { id },
+        })
+
+        return { role: deletedRole, roleNameForLog: roleToDelete.name }
     })
 
     // Add log
-    addRoleDeleteLog({ id: role.id, name: roleToDelete.name })
+    addRoleDeleteLog({ id: role.id, name: roleNameForLog })
 
     revalidatePath("/administration/roles")
     return role
@@ -124,26 +128,27 @@ export async function deleteRole(id: string) {
 // Assign permissions to a role
 export async function assignPermissionsToRole(roleId: string, permissionCodes: string[]) {
     try {
-        // Check if it's the Super Admin role
-        const existingRole = await prisma.role.findUnique({
-            where: { id: roleId },
-        })
+        const role = await prisma.$transaction(async (tx) => {
+            const existingRole = await tx.role.findUnique({
+                where: { id: roleId },
+            })
 
-        if (existingRole?.name === "Super Admin") {
-            throw new Error("Cannot modify permissions for the Super Admin role")
-        }
+            if (existingRole?.name === "Super Admin") {
+                throw new Error("Cannot modify permissions for the Super Admin role")
+            }
 
-        const role = await prisma.role.update({
-            where: { id: roleId },
-            data: {
-                Permissions: {
-                    set: permissionCodes.map((code) => ({ code })),
+            return tx.role.update({
+                where: { id: roleId },
+                data: {
+                    Permissions: {
+                        set: permissionCodes.map((code) => ({ code })),
+                    },
+                    updatedAt: new Date(),
                 },
-                updatedAt: new Date(),
-            },
-            include: {
-                Permissions: true,
-            },
+                include: {
+                    Permissions: true,
+                },
+            })
         })
 
         // Add log

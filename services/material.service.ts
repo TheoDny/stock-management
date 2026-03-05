@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { FileDb, Material, Material_Characteristic } from "@/prisma/generated/client"
 import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
 import { createMaterialHistory } from "@/services/material-history.service"
-import { deleteFiles, saveFile } from "@/services/storage.service"
+import { saveFile } from "@/services/storage.service"
 import { MaterialCharacteristic } from "@/types/characteristic.type"
 import { revalidatePath } from "next/cache"
 
@@ -102,8 +102,8 @@ export async function createMaterial(
         characteristicValues: CreateCharacteristicValueInput[]
     },
 ) {
-        // Create the material
-        const material = await prisma.material.create({
+    const material = await prisma.$transaction(async (tx) => {
+        const createdMaterial = await tx.material.create({
             data: {
                 name: data.name,
                 description: data.description || "",
@@ -118,13 +118,11 @@ export async function createMaterial(
             },
         })
 
-        // Create material characteristics
         if (data.characteristicValues.length > 0) {
             for (const cv of data.characteristicValues) {
                 let isFile = false
-                let fileDbIds: string[] = []
+                const fileDbIds: string[] = []
 
-                // Check if value is a file upload object
                 if (
                     cv.value &&
                     typeof cv.value === "object" &&
@@ -133,28 +131,25 @@ export async function createMaterial(
                 ) {
                     isFile = true
                     if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
-                        // Process each file in the array
                         for (const file of cv.value.fileToAdd) {
                             if (file instanceof File) {
-                                // Save file using storage service
                                 const savedFile = await saveFile(
                                     file,
-                                    `materials/${material.id}/characteristics/${cv.characteristicId}`,
+                                    `materials/${createdMaterial.id}/characteristics/${cv.characteristicId}`,
                                     materialImageMaxWidth,
                                 )
-    
+
                                 fileDbIds.push(savedFile.id)
                             }
                         }
                     }
                 }
 
-                // Create the characteristic value
                 if (isFile) {
                     if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
-                        await prisma.material_Characteristic.create({
+                        await tx.material_Characteristic.create({
                             data: {
-                                materialId: material.id,
+                                materialId: createdMaterial.id,
                                 characteristicId: cv.characteristicId,
                                 value: undefined,
                                 File: {
@@ -164,9 +159,9 @@ export async function createMaterial(
                         })
                     }
                 } else {
-                    await prisma.material_Characteristic.create({
+                    await tx.material_Characteristic.create({
                         data: {
-                            materialId: material.id,
+                            materialId: createdMaterial.id,
                             characteristicId: cv.characteristicId,
                             value: cv.value as
                                 | string[]
@@ -181,14 +176,17 @@ export async function createMaterial(
             }
         }
 
-        // Create material history entry
-        createMaterialHistory(material.id)
+        return createdMaterial
+    })
 
-        // Add log
-        addMaterialCreateLog({ id: material.id, name: material.name }, entityId)
+    // Create material history entry
+    createMaterialHistory(material.id)
 
-        revalidatePath("/materials")
-        return material
+    // Add log
+    addMaterialCreateLog({ id: material.id, name: material.name }, entityId)
+
+    revalidatePath("/materials")
+    return material
 }
 
 // Update an existing material
@@ -203,8 +201,8 @@ export async function updateMaterial(
         characteristicValues: UpdateCharacteristicValueInput[]
     },
 ) {
-        // Get current material to determine if version should be incremented
-        const currentMaterial = await prisma.material.findUnique({
+    const { material, materialNameForLog } = await prisma.$transaction(async (tx) => {
+        const currentMaterial = await tx.material.findUnique({
             where: { id, entityId },
             include: {
                 Tags: true,
@@ -220,32 +218,25 @@ export async function updateMaterial(
             throw new NotFoundMaterialError("Material not found")
         }
 
-        // Update the material
-        const material = await prisma.material.update({
+        const updatedMaterial = await tx.material.update({
             where: { id },
             data: {
                 name: data.name,
                 description: data.description || "",
                 updatedAt: new Date(),
                 Tags: {
-                    set: data.tagIds.map((id) => ({ id })), // Add new tags
+                    set: data.tagIds.map((id) => ({ id })),
                 },
                 Characteristics: {
-                    set: data.orderCharacteristics.map((characteristicId) => ({ id: characteristicId })), // Add new characteristics
+                    set: data.orderCharacteristics.map((characteristicId) => ({ id: characteristicId })),
                 },
                 order_Material_Characteristic: data.orderCharacteristics,
             },
         })
 
-        // Update material characteristics
-        // First, remove all existing characteristics
+        const fileIdsToDelete: string[] = []
         for (const mc of currentMaterial.Material_Characteristics) {
-            // For file type characteristics, we need to delete the actual files if needed
             if (mc.File.length > 0) {
-                // Keep track of file IDs to delete
-                const fileIdsToDelete: string[] = []
-
-                // Check if this characteristic is being updated with a file deletion
                 const characteristicUpdate = data.characteristicValues.find(
                     (cv) => cv.characteristicId === mc.characteristicId,
                 )
@@ -256,36 +247,35 @@ export async function updateMaterial(
                     typeof characteristicUpdate.value === "object" &&
                     "fileToDelete" in characteristicUpdate.value
                 ) {
-                    // Add specified files to the delete list
                     fileIdsToDelete.push(...characteristicUpdate.value.fileToDelete)
                 } else {
-                    // If the characteristic is removed or completely replaced,
-                    // all files need to be deleted
                     fileIdsToDelete.push(...mc.File.map((f: FileDb) => f.id))
-                }
-
-                // Delete the files that need to be removed
-                if (fileIdsToDelete.length > 0) {
-                    await deleteFiles(fileIdsToDelete, true) // Only delete from DB (for history purpose)
                 }
             }
         }
 
-        // Delete all existing material characteristics
-        await prisma.material_Characteristic.deleteMany({
+        if (fileIdsToDelete.length > 0) {
+            await tx.fileDb.deleteMany({
+                where: {
+                    id: {
+                        in: [...new Set(fileIdsToDelete)],
+                    },
+                },
+            })
+        }
+
+        await tx.material_Characteristic.deleteMany({
             where: {
                 materialId: id,
             },
         })
 
-        // Then, add the new characteristics
         if (data.characteristicValues.length > 0) {
             for (const cv of data.characteristicValues) {
                 let isFile = false
                 let processedValue: any = null
-                let fileDbIds: string[] = []
+                const fileDbIds: string[] = []
 
-                // Check if value is a file upload object for updating
                 if (
                     cv.value &&
                     typeof cv.value === "object" &&
@@ -294,29 +284,24 @@ export async function updateMaterial(
                 ) {
                     isFile = true
                     if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
-                        // Find existing characteristic to get current files
                         const existingCharacteristic = currentMaterial.Material_Characteristics.find(
                             (mc) => mc.characteristicId === cv.characteristicId,
                         )
 
-                        // Keep files that shouldn't be deleted
                         if (existingCharacteristic && existingCharacteristic.File.length > 0) {
                             const filesToDelete: string[] = cv.value.fileToDelete
                             const filesToKeep = existingCharacteristic.File.filter(
                                 (file) => !filesToDelete.includes(file.id),
                             )
 
-                            // Add IDs of files to keep
                             fileDbIds.push(...filesToKeep.map((f) => f.id))
                         }
 
-                        // Process new files to add
                         for (const file of cv.value.fileToAdd) {
                             if (file instanceof File) {
-                                // Save file using storage service
                                 const savedFile = await saveFile(
                                     file,
-                                    `materials/${material.id}/characteristics/${cv.characteristicId}`,
+                                    `materials/${updatedMaterial.id}/characteristics/${cv.characteristicId}`,
                                     materialImageMaxWidth,
                                 )
 
@@ -336,22 +321,21 @@ export async function updateMaterial(
                         | { from: Date; to: Date }
                 }
 
-                // Create the characteristic value with updated data
                 if (isFile && fileDbIds.length > 0) {
                     if (process.env.NEXT_PUBLIC_STORAGE_ENABLED === "true") {
-                        await prisma.material_Characteristic.create({
+                        await tx.material_Characteristic.create({
                             data: {
                                 materialId: id,
                                 characteristicId: cv.characteristicId,
                                 value: undefined,
                                 File: {
-                                    connect: fileDbIds.map((id) => ({ id })),
+                                    connect: fileDbIds.map((fileId) => ({ id: fileId })),
                                 },
                             },
                         })
                     }
                 } else {
-                    await prisma.material_Characteristic.create({
+                    await tx.material_Characteristic.create({
                         data: {
                             materialId: id,
                             characteristicId: cv.characteristicId,
@@ -362,12 +346,15 @@ export async function updateMaterial(
             }
         }
 
-        // Create material history entry
-        createMaterialHistory(material.id)
+        return { material: updatedMaterial, materialNameForLog: currentMaterial.name }
+    })
 
-        // Add log
-        addMaterialUpdateLog({ id: material.id, name: currentMaterial.name }, entityId)
+    // Create material history entry
+    createMaterialHistory(material.id)
 
-        revalidatePath("/materials")
-        return material
+    // Add log
+    addMaterialUpdateLog({ id: material.id, name: materialNameForLog }, entityId)
+
+    revalidatePath("/materials")
+    return material
 }

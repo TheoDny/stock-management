@@ -212,27 +212,28 @@ export async function updateUserProfile(
 
 export async function changeEntitySelected(userId: string, entityId: string) {
     try {
-        //check if user has the new entity in their entities
-        let user = await prisma.user.findFirst({
-            where: {
-                id: userId,
-                Entities: {
-                    some: {
-                        id: entityId,
+        const user = await prisma.$transaction(async (tx) => {
+            const userWithEntity = await tx.user.findFirst({
+                where: {
+                    id: userId,
+                    Entities: {
+                        some: {
+                            id: entityId,
+                        },
                     },
                 },
-            },
-        })
+            })
 
-        if (!user) {
-            throw new Error("User does not have access to the selected entity")
-        }
+            if (!userWithEntity) {
+                throw new Error("User does not have access to the selected entity")
+            }
 
-        user = await prisma.user.update({
-            where: { id: userId },
-            data: {
-                entitySelectedId: entityId,
-            },
+            return tx.user.update({
+                where: { id: userId },
+                data: {
+                    entitySelectedId: entityId,
+                },
+            })
         })
 
         // Add log
@@ -267,7 +268,7 @@ export async function verifyUserEmail(userId: string) {
 
 // Sign up user with token validation and user recreation
 export async function signUpUser(name: string, email: string, password: string) {
-    const user = await prisma.user.findUnique({
+    const existingUser = await prisma.user.findUnique({
         where: {
             email: email,
             deletedAt: null,
@@ -278,12 +279,13 @@ export async function signUpUser(name: string, email: string, password: string) 
         },
     })
 
-    if (user) {
-        // Delete existing user
-        await prisma.user.delete({
-            where: {
-                id: user.id,
-            },
+    if (existingUser) {
+        await prisma.$transaction(async (tx) => {
+            await tx.user.delete({
+                where: {
+                    id: existingUser.id,
+                },
+            })
         })
 
         // Create new account via auth
@@ -292,35 +294,35 @@ export async function signUpUser(name: string, email: string, password: string) 
                 email: email,
                 name: name,
                 password: password,
-                active: user.active,
-                entitySelectedId: user.entitySelectedId,
+                active: existingUser.active,
+                entitySelectedId: existingUser.entitySelectedId,
             },
         })
 
-        // Find the recreated user
-        const recreatedUser = await prisma.user.findUnique({
-            where: {
-                id: accountUser.user.id,
-            },
-        })
-
-        if (!recreatedUser) {
-            throw new Error("Failed to find recreated user")
-        }
-
-        // Restore user's entities and roles
-        await prisma.user.update({
-            where: {
-                id: recreatedUser.id,
-            },
-            data: {
-                Entities: {
-                    connect: user.Entities.map((entity) => ({ id: entity.id })),
+        await prisma.$transaction(async (tx) => {
+            const recreatedUser = await tx.user.findUnique({
+                where: {
+                    id: accountUser.user.id,
                 },
-                Roles: {
-                    connect: user.Roles.map((role) => ({ id: role.id })),
+            })
+
+            if (!recreatedUser) {
+                throw new Error("Failed to find recreated user")
+            }
+
+            await tx.user.update({
+                where: {
+                    id: recreatedUser.id,
                 },
-            },
+                data: {
+                    Entities: {
+                        connect: existingUser.Entities.map((entity) => ({ id: entity.id })),
+                    },
+                    Roles: {
+                        connect: existingUser.Roles.map((role) => ({ id: role.id })),
+                    },
+                },
+            })
         })
 
         return true
@@ -332,24 +334,27 @@ export async function signUpUser(name: string, email: string, password: string) 
 // Delete a user
 export async function deleteUser(id: string, currentUserId: string) {
     try {
-        // Get user details first
-        const userToDelete = await prisma.user.findUnique({
-            where: { id, deletedAt: null },
+        const { user, userNameForLog } = await prisma.$transaction(async (tx) => {
+            const userToDelete = await tx.user.findUnique({
+                where: { id, deletedAt: null },
+            })
+
+            if (!userToDelete) {
+                throw new Error("User not found")
+            }
+
+            const updatedUser = await tx.user.update({
+                where: { id },
+                data: {
+                    deletedAt: new Date(),
+                    email: userToDelete.email + "_deleted_" + new Date().toISOString(),
+                },
+            })
+
+            return { user: updatedUser, userNameForLog: userToDelete.name || "" }
         })
 
-        if (!userToDelete) {
-            throw new Error("User not found")
-        }
-
-        const user = await prisma.user.update({
-            where: { id },
-            data: {
-                deletedAt: new Date(),
-                email: userToDelete.email + "_deleted_" + new Date().toISOString(),
-            },
-        })
-
-        addUserDisableLog({ id: user.id, name: userToDelete.name || "" })
+        addUserDisableLog({ id: user.id, name: userNameForLog })
 
         revalidatePath("/administration/users")
         return user
