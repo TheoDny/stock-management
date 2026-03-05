@@ -545,6 +545,8 @@
             "tagsUnavailable": "No tags available",
             "characteristicsUnavailable": "No characteristics available",
             "noCharacteristics": "No characteristics added",
+            "confirmCloseTitle": "Leave without saving?",
+            "confirmCloseDescription": "Unsaved changes will be lost.",
             "error": {
                 "materialNotFound": "Material not found",
                 "name": {

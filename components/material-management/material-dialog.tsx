@@ -15,6 +15,7 @@ import {
     updateMaterialAction,
 } from "@/actions/material.actions"
 import { getTagsAction } from "@/actions/tag.action"
+import { ConfirmDialog } from "@/components/dialog/ConfirmDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Combobox } from "@/components/ui/combobox"
@@ -72,6 +73,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const [characteristicValues, setCharacteristicValues] = useState<MaterialCharacteristicClient[]>([])
     const [activeTab, setActiveTab] = useState("general")
     const [selectedCharacteristicId, setSelectedCharacteristicId] = useState<string>("")
+    const [showConfirmClose, setShowConfirmClose] = useState(false)
     const tCommon = useTranslations("Common")
     const tMaterialDialog = useTranslations("Materials.dialog")
     const tMaterials = useTranslations("Materials")
@@ -174,17 +176,17 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         }
     }, [open, material, form, tMaterials])
 
-    // Update the order whenever characteristic values change
+    // Update the order only when characteristics are added or removed (not on value changes)
     useEffect(() => {
         const currentOrder = form.getValues("orderCharacteristics")
         const characteristicIds = characteristicValues.map((cv) => cv.characteristicId)
 
-        // Add any new characteristic IDs to the order
         const newIds = characteristicIds.filter((id) => !currentOrder.includes(id))
+        const hasRemovedIds = currentOrder.some((id) => !characteristicIds.includes(id))
 
-        // Remove any IDs from the order that are no longer in the values
+        if (newIds.length === 0 && !hasRemovedIds) return
+
         const updatedOrder = currentOrder.filter((id) => characteristicIds.includes(id)).concat(newIds)
-
         form.setValue("orderCharacteristics", updatedOrder)
     }, [characteristicValues, form])
 
@@ -494,6 +496,10 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         })
     }, [characteristicValues, orderCharacteristics])
 
+    // Keep a ref to avoid recreating handleDragOver on every value change
+    const orderedValuesRef = useRef(orderedCharacteristicValues)
+    orderedValuesRef.current = orderedCharacteristicValues
+
     // Drag and drop handlers
     const handleDragStart = useCallback((index: number) => {
         draggedItemIndexRef.current = index
@@ -504,14 +510,10 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         const draggedIndex = draggedItemIndexRef.current
         if (draggedIndex === null || draggedIndex === index) return
 
-        // Reorder the characteristics
-        const orderedValues = orderedCharacteristicValues
+        const orderedValues = orderedValuesRef.current
         const order = form.getValues("orderCharacteristics")
-
-        // Get the item being dragged and the target position
         const draggedItem = orderedValues[draggedIndex]
 
-        // Create new order by moving the dragged item
         const newOrder = [...order]
         const fromIndex = newOrder.indexOf(draggedItem.characteristicId)
         const toIndex = newOrder.indexOf(orderedValues[index].characteristicId)
@@ -523,7 +525,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         }
 
         draggedItemIndexRef.current = index
-    }, [form, orderedCharacteristicValues])
+    }, [form])
 
     const handleDragEnd = useCallback(() => {
         draggedItemIndexRef.current = null
@@ -555,6 +557,11 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             onDragOver,
             onDragEnd,
         }: Props) {
+            const handleChange = useCallback(
+                (value: any) => onValueChange(cv.characteristicId, value),
+                [cv.characteristicId, onValueChange],
+            )
+
             return (
                 <div
                     className="border rounded-md p-3 space-y-1"
@@ -580,7 +587,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     <MemoizedCharacteristicValueForm
                         characteristic={cv.Characteristic}
                         value={cv.value}
-                        onChange={(value) => onValueChange(cv.characteristicId, value)}
+                        onChange={handleChange}
                         isEditing={isEditing}
                     />
                 </div>
@@ -588,203 +595,224 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         })
     }, [])
 
+    const handleInteractOutside = useCallback((e: Event) => {
+        if (isEditing) {
+            e.preventDefault()
+            setShowConfirmClose(true)
+        }
+    }, [isEditing])
+
     return (
-        <Dialog
-            open={open}
-            onOpenChange={handleClose}
-        >
-            <DialogContent
-                className="sm:max-w-[700px] max-h-[80vh] flex flex-col top-[10%] translate-y-0"
-                style={{ position: "fixed", margin: "0 auto", transformOrigin: "top" }}
+        <>
+            <Dialog
+                open={open}
+                onOpenChange={handleClose}
             >
-                <DialogHeader>
-                    <DialogTitle>{isEditing ? tMaterialDialog("edit") : tMaterialDialog("create")}</DialogTitle>
-                    <DialogDescription>
-                        {isEditing ? tMaterialDialog("editDescription") : tMaterialDialog("createDescription")}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <Tabs
-                    value={activeTab}
-                    onValueChange={setActiveTab}
-                    className="flex flex-col flex-1 overflow-hidden"
+                <DialogContent
+                    className="sm:max-w-[700px] max-h-[80vh] flex flex-col top-[10%] translate-y-0"
+                    style={{ position: "fixed", margin: "0 auto", transformOrigin: "top" }}
+                    onInteractOutside={handleInteractOutside}
                 >
-                    <TabsList className="grid grid-cols-3 w-full">
-                        <TabsTrigger value="general">{tMaterialDialog("general")}</TabsTrigger>
-                        <TabsTrigger value="tags">{tMaterialDialog("tags")}</TabsTrigger>
-                        <TabsTrigger value="characteristics">{tMaterialDialog("characteristics")}</TabsTrigger>
-                    </TabsList>
+                    <DialogHeader>
+                        <DialogTitle>{isEditing ? tMaterialDialog("edit") : tMaterialDialog("create")}</DialogTitle>
+                        <DialogDescription>
+                            {isEditing ? tMaterialDialog("editDescription") : tMaterialDialog("createDescription")}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                    <Form {...form}>
-                        <form
-                            onSubmit={form.handleSubmit(onSubmit)}
-                            className="space-y-4 mt-4 flex flex-col overflow-hidden"
-                        >
-                            <div
-                                className="overflow-y-auto pr-2"
-                                style={{ maxHeight: "calc(70vh - 180px)" }}
+                    <Tabs
+                        value={activeTab}
+                        onValueChange={setActiveTab}
+                        className="flex flex-col flex-1 overflow-hidden"
+                    >
+                        <TabsList className="grid grid-cols-3 w-full">
+                            <TabsTrigger value="general">{tMaterialDialog("general")}</TabsTrigger>
+                            <TabsTrigger value="tags">{tMaterialDialog("tags")}</TabsTrigger>
+                            <TabsTrigger value="characteristics">{tMaterialDialog("characteristics")}</TabsTrigger>
+                        </TabsList>
+
+                        <Form {...form}>
+                            <form
+                                onSubmit={form.handleSubmit(onSubmit)}
+                                className="space-y-4 mt-4 flex flex-col overflow-hidden"
                             >
-                                <TabsContent
-                                    value="general"
-                                    className="space-y-4"
+                                <div
+                                    className="overflow-y-auto pr-2"
+                                    style={{ maxHeight: "calc(70vh - 180px)" }}
                                 >
-                                    <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>{tMaterialDialog("name")}</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder={tMaterialDialog("namePlaceholder")}
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="description"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>{tMaterialDialog("description")}</FormLabel>
-                                                <FormControl>
-                                                    <Textarea
-                                                        placeholder={tMaterialDialog("descriptionPlaceholder")}
-                                                        className="resize-none"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </TabsContent>
-
-                                <TabsContent
-                                    value="tags"
-                                    className="space-y-4"
-                                >
-                                    <FormField
-                                        control={form.control}
-                                        name="tagIds"
-                                        render={() => (
-                                            <FormItem>
-                                                <FormLabel>{tMaterialDialog("tags")}</FormLabel>
-                                                <FormControl>
-                                                    <div className="grid grid-cols-2 gap-2 mt-2">
-                                                        {tags.map((tag) => (
-                                                            <div
-                                                                key={tag.id}
-                                                                className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted cursor-pointer"
-                                                                onClick={() => handleTagToggle(tag.id)}
-                                                            >
-                                                                <div className="flex-1 flex items-center space-x-2">
-                                                                    <Badge
-                                                                        style={{
-                                                                            backgroundColor: tag.color,
-                                                                            color: tag.fontColor,
-                                                                        }}
-                                                                    >
-                                                                        {tag.name}
-                                                                    </Badge>
-                                                                    <span className="text-sm">
-                                                                        {form
-                                                                            .getValues("tagIds")
-                                                                            .includes(tag.id) ? (
-                                                                            <Check className="h-4 w-4 text-green-500" />
-                                                                        ) : null}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                        {tags.length === 0 && (
-                                                            <div className="col-span-2 text-center py-4 text-muted-foreground">
-                                                                {tMaterialDialog("tagsUnavailable")}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </TabsContent>
-
-                                <TabsContent
-                                    value="characteristics"
-                                    className="space-y-4"
-                                >
-                                    {activeTab !== "characteristics" ? null : (
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <FormLabel>{tMaterialDialog("characteristics")}</FormLabel>
-                                            <Combobox
-                                                options={availableCharacteristics.map((characteristic) => ({
-                                                    value: characteristic.id,
-                                                    label: characteristic.name,
-                                                }))}
-                                                value={selectedCharacteristicId}
-                                                onChange={handleAddCharacteristic}
-                                                placeholder={tMaterialDialog("addCharacteristics")}
-                                                emptyMessage={tMaterialDialog("characteristicsUnavailable")}
-                                                className="w-[250px]"
-                                                disabled={availableCharacteristics.length === 0}
-                                            />
-                                        </div>
-
-                                        <div className="space-y-4 mb-0.5">
-                                            {characteristicValues.length === 0 ? (
-                                                <div className="text-center py-4 text-muted-foreground border rounded-md">
-                                                    {tMaterialDialog("noCharacteristics")}
-                                                </div>
-                                            ) : (
-                                                orderedCharacteristicValues.map((cv, index) => (
-                                                    <CharacteristicRow
-                                                        key={cv.characteristicId}
-                                                        cv={cv}
-                                                        index={index}
-                                                        isEditing={isEditing}
-                                                        onRemove={handleRemoveCharacteristic}
-                                                        onValueChange={handleCharacteristicValueChange}
-                                                        onDragStart={handleDragStart}
-                                                        onDragOver={handleDragOver}
-                                                        onDragEnd={handleDragEnd}
-                                                    />
-                                                ))
+                                    <TabsContent
+                                        value="general"
+                                        className="space-y-4"
+                                    >
+                                        <FormField
+                                            control={form.control}
+                                            name="name"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>{tMaterialDialog("name")}</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder={tMaterialDialog("namePlaceholder")}
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
                                             )}
-                                        </div>
-                                    </div>
-                                    )}
-                                </TabsContent>
-                            </div>
+                                        />
 
-                            <DialogFooter className="pt-4">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => handleClose()}
-                                >
-                                    {tCommon("cancel")}
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting
-                                        ? tCommon("saving")
-                                        : isEditing
-                                          ? tCommon("update")
-                                          : tCommon("create")}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </Form>
-                </Tabs>
-            </DialogContent>
-        </Dialog>
+                                        <FormField
+                                            control={form.control}
+                                            name="description"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>{tMaterialDialog("description")}</FormLabel>
+                                                    <FormControl>
+                                                        <Textarea
+                                                            placeholder={tMaterialDialog("descriptionPlaceholder")}
+                                                            className="resize-none"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </TabsContent>
+
+                                    <TabsContent
+                                        value="tags"
+                                        className="space-y-4"
+                                    >
+                                        <FormField
+                                            control={form.control}
+                                            name="tagIds"
+                                            render={() => (
+                                                <FormItem>
+                                                    <FormLabel>{tMaterialDialog("tags")}</FormLabel>
+                                                    <FormControl>
+                                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                                            {tags.map((tag) => (
+                                                                <div
+                                                                    key={tag.id}
+                                                                    className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted cursor-pointer"
+                                                                    onClick={() => handleTagToggle(tag.id)}
+                                                                >
+                                                                    <div className="flex-1 flex items-center space-x-2">
+                                                                        <Badge
+                                                                            style={{
+                                                                                backgroundColor: tag.color,
+                                                                                color: tag.fontColor,
+                                                                            }}
+                                                                        >
+                                                                            {tag.name}
+                                                                        </Badge>
+                                                                        <span className="text-sm">
+                                                                            {form
+                                                                                .getValues("tagIds")
+                                                                                .includes(tag.id) ? (
+                                                                                <Check className="h-4 w-4 text-green-500" />
+                                                                            ) : null}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {tags.length === 0 && (
+                                                                <div className="col-span-2 text-center py-4 text-muted-foreground">
+                                                                    {tMaterialDialog("tagsUnavailable")}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </TabsContent>
+
+                                    <TabsContent
+                                        value="characteristics"
+                                        className="space-y-4"
+                                    >
+                                        {activeTab !== "characteristics" ? null : (
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-center">
+                                                    <FormLabel>{tMaterialDialog("characteristics")}</FormLabel>
+                                                    <Combobox
+                                                        options={availableCharacteristics.map((characteristic) => ({
+                                                            value: characteristic.id,
+                                                            label: characteristic.name,
+                                                        }))}
+                                                        value={selectedCharacteristicId}
+                                                        onChange={handleAddCharacteristic}
+                                                        placeholder={tMaterialDialog("addCharacteristics")}
+                                                        emptyMessage={tMaterialDialog("characteristicsUnavailable")}
+                                                        className="w-[250px]"
+                                                        disabled={availableCharacteristics.length === 0}
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-4 mb-0.5">
+                                                    {characteristicValues.length === 0 ? (
+                                                        <div className="text-center py-4 text-muted-foreground border rounded-md">
+                                                            {tMaterialDialog("noCharacteristics")}
+                                                        </div>
+                                                    ) : (
+                                                        orderedCharacteristicValues.map((cv, index) => (
+                                                            <CharacteristicRow
+                                                                key={cv.characteristicId}
+                                                                cv={cv}
+                                                                index={index}
+                                                                isEditing={isEditing}
+                                                                onRemove={handleRemoveCharacteristic}
+                                                                onValueChange={handleCharacteristicValueChange}
+                                                                onDragStart={handleDragStart}
+                                                                onDragOver={handleDragOver}
+                                                                onDragEnd={handleDragEnd}
+                                                            />
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </TabsContent>
+                                </div>
+
+                                <DialogFooter className="pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => handleClose()}
+                                    >
+                                        {tCommon("cancel")}
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting
+                                            ? tCommon("saving")
+                                            : isEditing
+                                                ? tCommon("update")
+                                                : tCommon("create")}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </Form>
+                    </Tabs>
+                </DialogContent>
+            </Dialog>
+
+            <ConfirmDialog
+                open={showConfirmClose}
+                title={tMaterialDialog("confirmCloseTitle")}
+                description={tMaterialDialog("confirmCloseDescription")}
+                onConfirm={() => {
+                    setShowConfirmClose(false)
+                    handleClose()
+                }}
+                onCancel={() => setShowConfirmClose(false)}
+            />
+        </>
     )
 }

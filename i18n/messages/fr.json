@@ -544,6 +544,8 @@
             "tagsUnavailable": "Aucun tag disponible",
             "characteristicsUnavailable": "Aucune caractéristique disponible",
             "noCharacteristics": "Aucune caractéristique ajoutée",
+            "confirmCloseTitle": "Quitter sans enregistrer ?",
+            "confirmCloseDescription": "Les modifications non enregistrées seront perdues.",
             "error": {
                 "materialNotFound": "Matériel introuvable",
                 "name": {
