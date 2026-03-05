@@ -9,7 +9,7 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from "@/components/ui/hover-card"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 import {
     CharacteristicHistory,
     CharacteristicHistoryBoolean,
@@ -20,7 +20,6 @@ import {
     CharacteristicHistoryMultiText,
     CharacteristicHistoryString,
 } from "@/types/material-history.type"
-import { format } from "date-fns"
 import {
     Calendar,
     Check,
@@ -36,7 +35,7 @@ import {
     Mail,
     X,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import Image from "next/image"
 import React, { useState } from "react"
 
@@ -151,7 +150,7 @@ export function CharacteristicDisplay({ characteristic }: CharacteristicDisplayP
         name: string
         type?: string
     } | null>(null)
-
+    const locale = useLocale() as "en" | "fr"
     const handleOpenPreview = (file: { name: string; path: string; type: string }) => {
         setPreviewFile({
             url: `/api/image/path/${file.path}`,
@@ -224,7 +223,7 @@ export function CharacteristicDisplay({ characteristic }: CharacteristicDisplayP
                 dateValue ? (
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>{format(dateValue, characteristic.type === "dateHour" ? "PPp" : "PPP")}</span>
+                        <span>{formatDate(dateValue, characteristic.type === "dateHour" ? "PPp" : "PPP", locale)}</span>
                     </div>
                 ) : (
                     <span className="text-muted-foreground">N/A</span>
@@ -234,8 +233,8 @@ export function CharacteristicDisplay({ characteristic }: CharacteristicDisplayP
 
         // Date range values
         if (isDateRangeType(characteristic)) {
-            const fromDate = characteristic.value.from ? new Date(characteristic.value.from) : null
-            const toDate = characteristic.value.to ? new Date(characteristic.value.to) : null
+            const fromDate = characteristic.value.from
+            const toDate = characteristic.value.to 
 
             return wrapWithLabel(
                 fromDate && toDate ? (
@@ -244,13 +243,13 @@ export function CharacteristicDisplay({ characteristic }: CharacteristicDisplayP
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             <span>
                                 {tCommon("from")}:{" "}
-                                {format(fromDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP")}
+                                {formatDate(fromDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP", locale)}
                             </span>
                         </div>
                         <div className="flex items-center gap-2 ml-6">
                             <span>
                                 {tCommon("to")}:{" "}
-                                {format(toDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP")}
+                                {formatDate(toDate, characteristic.type === "dateHourRange" ? "PPp" : "PPP", locale)}
                             </span>
                         </div>
                     </div>
