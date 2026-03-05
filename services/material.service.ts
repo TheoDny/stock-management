@@ -1,11 +1,12 @@
 import { NotFoundMaterialError } from "@/errors/NotFoundMaterialError"
+import { materialCacheTag } from "@/lib/material-cache-tags"
 import { prisma } from "@/lib/prisma"
 import { FileDb, Material, Material_Characteristic } from "@/prisma/generated/client"
 import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
 import { createMaterialHistory } from "@/services/material-history.service"
 import { saveFile } from "@/services/storage.service"
 import { MaterialCharacteristic } from "@/types/characteristic.type"
-import { revalidatePath } from "next/cache"
+import { cacheTag, revalidatePath, revalidateTag } from "next/cache"
 
 type CreateCharacteristicValueInput = {
     characteristicId: string
@@ -43,8 +44,18 @@ type MaterialWithMaterialCharacteristics = Material & {
 
 const materialImageMaxWidth = { imgMaxWidth: 720, imgMaxHeight: 720 }
 
+const revalidateMaterialCache = (entityId: string, materialId: string) => {
+    revalidateTag(materialCacheTag.materialList(entityId), "max")
+    revalidateTag(materialCacheTag.materialById(materialId), "max")
+    revalidateTag(materialCacheTag.materialCharacteristics(materialId), "max")
+    revalidateTag(materialCacheTag.materialHistory(materialId), "max")
+}
+
 // Get all materials with their tags
 export async function getMaterials(entityId: string) {
+    "use cache"
+    cacheTag(materialCacheTag.materialList(entityId))
+
     const materials = await prisma.material.findMany({
         where: {
             entityId,
@@ -63,6 +74,9 @@ export async function getMaterials(entityId: string) {
 
 // Get material by ID
 export async function getMaterialById(id: string) {
+    "use cache"
+    cacheTag(materialCacheTag.materialById(id))
+
     const material = await prisma.material.findUnique({
         where: { id },
     })
@@ -72,6 +86,9 @@ export async function getMaterialById(id: string) {
 
 // Get material characteristics
 export async function getMaterialCharacteristics(materialId: string): Promise<MaterialCharacteristic[]> {
+    "use cache"
+    cacheTag(materialCacheTag.materialCharacteristics(materialId))
+
     const characteristicValues = await prisma.material_Characteristic.findMany({
         where: {
             materialId,
@@ -180,7 +197,9 @@ export async function createMaterial(
     })
 
     // Create material history entry
-    createMaterialHistory(material.id)
+    await createMaterialHistory(material.id)
+
+    revalidateMaterialCache(entityId, material.id)
 
     // Add log
     addMaterialCreateLog({ id: material.id, name: material.name }, entityId)
@@ -350,7 +369,9 @@ export async function updateMaterial(
     })
 
     // Create material history entry
-    createMaterialHistory(material.id)
+    await createMaterialHistory(material.id)
+
+    revalidateMaterialCache(entityId, material.id)
 
     // Add log
     addMaterialUpdateLog({ id: material.id, name: materialNameForLog }, entityId)

@@ -90,6 +90,7 @@ Responsabilites:
 - centraliser la logique metier,
 - lire/ecrire en base via Prisma,
 - orchestrer les operations multi-etapes (transactions, historique, logs, storage),
+- gerer le cache serveur Next.js (`use cache`, `cacheTag`, `revalidateTag`) pour les lectures frequentes,
 - encapsuler les regles de domaine.
 
 Exemples de services:
@@ -150,7 +151,7 @@ Regle:
 
 #### Flux avec effets secondaires
 
-`Component -> Action -> Service -> Prisma writes -> history/log/storage -> revalidatePath -> Component refresh`
+`Component -> Action -> Service -> Prisma -> history/log/storage -> (revalidateTag/cacheTag/revalidatePath) -> Component refresh`
 
 Exemple simplifie (materiel):
 

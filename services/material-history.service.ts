@@ -1,3 +1,4 @@
+import { materialCacheTag } from "@/lib/material-cache-tags"
 import { prisma } from "@/lib/prisma"
 import { Characteristic, FileDb, Tag } from "@/prisma/generated/client"
 import {
@@ -6,6 +7,7 @@ import {
     ValueFieldCharacteristicHistory,
 } from "@/types/material-history.type"
 import { MaterialCharacteristicWithFile } from "@/types/material.type"
+import { cacheTag, revalidateTag } from "next/cache"
 
 export const createMaterialHistory = async (materialId: string) => {
     const materialFullInfo = await prisma.material.findUnique({
@@ -45,6 +47,8 @@ export const createMaterialHistory = async (materialId: string) => {
             createdAt: new Date(),
         },
     })
+
+    revalidateTag(materialCacheTag.materialHistory(materialId), "max")
 
     return materialHistory
 }
@@ -121,6 +125,9 @@ export async function getMaterialHistory(
     dateFrom: Date,
     dateTo: Date,
 ): Promise<MaterialHistoryCharacTyped[]> {
+    "use cache"
+    cacheTag(materialCacheTag.materialHistory(materialId))
+
     try {
         const history = await prisma.material_History.findMany({
             where: {
@@ -143,6 +150,9 @@ export async function getMaterialHistory(
 }
 
 export async function getMaterialHistoryLast(materialId: string): Promise<MaterialHistoryCharacTyped> {
+    "use cache"
+    cacheTag(materialCacheTag.materialHistory(materialId))
+
     try {
         const history = await prisma.material_History.findFirst({
             where: {
