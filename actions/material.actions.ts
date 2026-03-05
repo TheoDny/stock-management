@@ -138,7 +138,6 @@ export const updateMaterialAction = actionClient
         const session = await checkAuth({ requiredPermission: "material_edit" })
 
         const { id, name, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
-        console.log("updateMaterialAction", characteristicValues)
 
         return await updateMaterial(id, session.user.entitySelectedId, {
             name,
