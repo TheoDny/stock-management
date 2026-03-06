@@ -21,11 +21,20 @@ import {
 } from "@/components/ui/sidebar"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Menu } from "lucide-react"
+import { useLocale } from "next-intl"
 import Link from "next/link"
+import { useEffect } from "react"
 
 export function AppSidebar({ data, ...props }: React.ComponentProps<typeof Sidebar> & { data: any }) {
     const isMobile = useIsMobile()
-    
+    const locale = useLocale()
+
+    useEffect(() => {
+        if (locale) {
+            document.documentElement.setAttribute("lang", locale)
+        }
+    }, [locale])
+
     if (isMobile) {
         return (
             <Sheet>

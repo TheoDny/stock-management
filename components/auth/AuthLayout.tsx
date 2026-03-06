@@ -4,12 +4,20 @@ import { LanguageSelector } from "@/components/select/select-language"
 import { useIsMobile } from "@/hooks/use-mobile"
 // import logoNoBg from "@/public/logo-no-bg.png"
 import { Boxes } from "lucide-react"
-import { ReactNode } from "react"
+import { useLocale } from "next-intl"
+import { ReactNode, useEffect } from "react"
 
 const appName = process.env.NEXT_PUBLIC_NAME_APP ?? "App name"
 
 export function AuthLayout({ children }: { children: ReactNode }) {
     const isMobile = useIsMobile()
+    const locale = useLocale()
+
+    useEffect(() => {
+        if (locale) {
+            document.documentElement.setAttribute("lang", locale)
+        }
+    }, [locale])
 
     if (isMobile) {
         return (

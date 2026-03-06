@@ -1,8 +1,7 @@
 import { AuthLayout } from "@/components/auth/AuthLayout"
 import { Toaster } from "@/components/ui/sonner"
 import { NextIntlClientProvider } from "next-intl"
-import { getLocale } from "next-intl/server"
-import type { ReactNode } from "react"
+import { Suspense, type ReactNode } from "react"
 import "../globals.css"
 
 interface RootLayoutProps {
@@ -11,12 +10,10 @@ interface RootLayoutProps {
 
 const appName = process.env.NEXT_PUBLIC_NAME_APP ?? "App name"
 
-export default async function RootLayout({ children }: RootLayoutProps) {
-    const locale = await getLocale()
-
+export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html
-            lang={locale}
+            lang="en"
             suppressHydrationWarning
         >
             <head>
@@ -27,10 +24,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 />
             </head>
             <body className="dark">
-                <NextIntlClientProvider>
-                    <Toaster />
-                    <AuthLayout>{children}</AuthLayout>
-                </NextIntlClientProvider>
+                <Suspense fallback={<div className="min-h-screen" />}>
+                    <NextIntlClientProvider>
+                        <Toaster />
+                        <AuthLayout>{children}</AuthLayout>
+                    </NextIntlClientProvider>
+                </Suspense>
             </body>
         </html>
     )
